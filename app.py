@@ -113,7 +113,7 @@ with col_auth:
             auth_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=read:user"
             
             st.markdown(f"""
-            <a href="{auth_url}" target="_top" style="text-decoration: none;">
+            <a href="{auth_url}" target="_blank" style="text-decoration: none;">
                 <div class='social-btn github-btn'>
                     <img src='https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' width='22' style='margin-right: 10px; filter: invert(1);'/>
                     Tiếp tục với GitHub
