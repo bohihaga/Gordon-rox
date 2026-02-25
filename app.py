@@ -69,4 +69,4 @@ with col_auth:
                 else:
                     users[new_user] = {"password": hash_pass(new_pass), "fridge": []}
                     save_db(USER_DB, users)
-                    st.success("Tạo thành công! Hãy sang tab Đăng Nhập.")s
+                    st.success("Tạo thành công! Hãy sang tab Đăng Nhập.")
