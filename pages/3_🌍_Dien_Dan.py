@@ -8,7 +8,7 @@ require_login()
 st.title("🌍 Bảng Tin Đầu Bếp")
 st.write(f"Bạn đang đăng bài với tư cách: **{st.session_state.username}**")
 
-# clear_on_submit=True giúp tự động xóa chữ sau khi bấm đăng bài
+# Xóa nội dung khung chat sau khi đăng bài
 with st.form("post_form", clear_on_submit=True):
     msg = st.text_area("Bạn nấu món gì hôm nay?")
     if st.form_submit_button("📢 Đăng bài"):
@@ -29,9 +29,13 @@ posts = load_db(FORUM_DB)
 # Hiển thị bài viết từ mới nhất đến cũ nhất
 for post in reversed(posts):
     with st.container(border=True):
-        # Dùng .get() để tránh lỗi nếu thiếu dữ liệu
-        st.markdown(f"**🧑‍🍳 @{post.get('name', 'Ẩn danh')}** *(lúc {post.get('time', '')})*")
-        
-        # Lấy nội dung: nếu không có 'msg' thì tìm 'message' (hỗ trợ bài viết cũ)
-        noi_dung = post.get('msg', post.get('message', ''))
-        st.write(noi_dung)
+        # 🛠️ KIỂM TRA KIỂU DỮ LIỆU ĐỂ CHỐNG LỖI 🛠️
+        if isinstance(post, dict):
+            # 1. Nếu là cấu trúc xịn (Có Tên, Giờ, Nội dung)
+            st.markdown(f"**🧑‍🍳 @{post.get('name', 'Ẩn danh')}** *(lúc {post.get('time', '')})*")
+            noi_dung = post.get('msg', post.get('message', ''))
+            st.write(noi_dung)
+        else:
+            # 2. Nếu là cấu trúc đồ cổ (Chỉ có mỗi dòng chữ)
+            st.markdown("**🧑‍🍳 @Khách_ẩn_danh** *(Bài viết cũ)*")
+            st.write(post)
