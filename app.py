@@ -13,108 +13,94 @@ if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
 if "theme_mode" not in st.session_state: st.session_state.theme_mode = "Dark"
 
 # ==========================================
-# 🎨 HỆ THỐNG GIAO DIỆN (THEME & CSS)
+# 🎨 HỆ THỐNG GIAO DIỆN CHUẨN MỰC
 # ==========================================
-# Thiết lập màu sắc linh hoạt cho Light/Dark Mode
 if st.session_state.theme_mode == "Dark":
-    bg_color, text_color, card_bg, sidebar_bg, border_color = "#0f1115", "#f8fafc", "rgba(22, 24, 29, 0.8)", "#16181d", "#272a30"
-    input_bg, input_border = "#1e2026", "#333842"
+    bg_color, text_color, card_bg, sidebar_bg, border_color = "#0f1115", "#f8fafc", "#1e2026", "#16181d", "#272a30"
+    input_bg, input_border = "#16181d", "#333842"
     btn_bg = "rgba(255,255,255,0.05)"
 else:
-    bg_color, text_color, card_bg, sidebar_bg, border_color = "#ffffff", "#1e293b", "rgba(241, 245, 249, 0.8)", "#f8fafc", "#e2e8f0"
-    input_bg, input_border = "#f1f5f9", "#cbd5e1"
+    bg_color, text_color, card_bg, sidebar_bg, border_color = "#ffffff", "#1e293b", "#f8fafc", "#f1f5f9", "#e2e8f0"
+    input_bg, input_border = "#ffffff", "#cbd5e1"
     btn_bg = "rgba(0,0,0,0.05)"
 
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap');
     
-    body, p, h1, h2, h3, h4, h5, h6, span, div, input, textarea, button {{
+    /* 1. SỬA LỖI KEYBOARD_DOUBLE: Không ép Font lên các Icon của hệ thống */
+    body, p, h1, h2, h3, h4, h5, h6, div, input, textarea {{
         font-family: 'Inter', sans-serif !important;
     }}
 
-    .stApp {{ background-color: {bg_color}; color: {text_color}; }}
-    
-    /* 🔥 KHÓA CHẶT MÀU LINK (KHÔNG CHO HIỆN MÀU XANH LÈ) 🔥 */
-    a, a:hover, a:visited, a:active {{ color: {text_color} !important; text-decoration: none !important; }}
-    
-    /* 🔥 XÓA SẠCH MANAGE APP VÀ RAW UI CỦA STREAMLIT 🔥 */
-    .viewerBadge_container, .viewerBadge_link {{ display: none !important; }} /* Triệt tiêu Manage App */
-    footer {{ display: none !important; }} 
-    [data-testid="stFooter"] {{ display: none !important; }}
-    #MainMenu {{ visibility: hidden !important; }}
-    [data-testid="stToolbar"] {{ display: none !important; }}
-    
-    /* ✅ SỬA LỖI HIỆN CHỮ Ở NÚT MENU GÓC TRÁI */
-    [data-testid="stHeader"] {{ background-color: transparent !important; }}
-    
-    [data-testid="stSidebarNav"] {{ display: none !important; }}
-    
-    /* Thiết kế Sidebar */
-    [data-testid="stSidebar"] {{ 
-        background-color: {sidebar_bg}; 
-        border-right: 1px solid {border_color}; 
+    /* 2. ÉP MÀU NỀN VÀ MÀU CHỮ SÁNG/TỐI (Tất cả mọi chữ đều phải tuân thủ) */
+    .stApp {{ background-color: {bg_color}; }}
+    div, p, span, a, label, h1, h2, h3, h4, h5, h6, li {{
+        color: {text_color} !important; 
     }}
+    a {{ text-decoration: none !important; }}
     
-    .sidebar-logo {{ 
-        font-family: 'Playfair Display', serif !important; 
-        font-size: 2.2rem; color: {text_color}; margin-bottom: 25px; padding-left: 10px; font-style: italic;
+    /* 3. TRIỆT TIÊU MẢNG TRẮNG Ở ĐÁY & CHAT INPUT */
+    [data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlock"] {{
+        background-color: {bg_color} !important; 
+    }}
+    .stChatInputContainer {{ 
+        background-color: {input_bg} !important; 
+        border: 1px solid {input_border} !important; 
+        border-radius: 16px !important; 
+    }}
+    .stChatInputContainer:focus-within {{ border-color: #f97316 !important; }}
+    
+    /* 4. LÀM SÁNG HỘP CHATBOX BÊN TRONG */
+    [data-testid="stVerticalBlockBorderWrapper"] {{
+        background-color: {card_bg} !important;
+        border-radius: 16px !important;
+        border: 1px solid {border_color} !important;
+        padding: 10px;
     }}
 
-    /* Card thiết kế Pro (Trang chủ) */
+    /* 5. TẨY SẠCH MANAGE APP & HEADER */
+    .viewerBadge_container, .viewerBadge_link, [data-testid="stAppDeployButton"], [data-testid="stToolbar"], footer, [data-testid="stFooter"] {{ 
+        display: none !important; 
+    }}
+    #MainMenu {{ visibility: hidden !important; }}
+    [data-testid="stHeader"] {{ background-color: transparent !important; }}
+    
+    /* Thiết kế Sidebar */
+    [data-testid="stSidebarNav"] {{ display: none !important; }}
+    [data-testid="stSidebar"] {{ 
+        background-color: {sidebar_bg} !important; 
+        border-right: 1px solid {border_color} !important; 
+    }}
+    .sidebar-logo {{ 
+        font-family: 'Playfair Display', serif !important; 
+        font-size: 2.2rem; color: {text_color} !important; margin-bottom: 25px; padding-left: 10px; font-style: italic;
+    }}
+
+    /* Card Trang Chủ */
     .glass-card-btn {{
         background: {sidebar_bg}; border: 1px solid {border_color}; border-radius: 16px; padding: 25px 15px;
         text-align: center; transition: all 0.2s ease; height: 100%;
         display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer;
-        color: {text_color} !important;
     }}
-    .glass-card-btn:hover {{ border-color: #f97316; transform: translateY(-3px); }}
+    .glass-card-btn:hover {{ border-color: #f97316 !important; transform: translateY(-3px); }}
     .glass-card-icon {{ font-size: 2.2rem; margin-bottom: 15px; }}
-    .glass-card-title {{ font-weight: 600; font-size: 1.1rem; color: {text_color} !important; }}
-    .glass-card-subtitle {{ color:#64748b; font-size:0.85em; margin-top:8px; }}
-
-    /* 🔥 SỬA LỖI MẢNG TRẮNG Ở ĐÁY KHUNG CHAT 🔥 */
-    [data-testid="stBottomBlock"], [data-testid="stBottom"] {{
-        background-color: {bg_color} !important; 
-    }}
-    .stChatInput {{ background-color: transparent !important; padding-bottom: 20px; }}
-    .stChatInputContainer {{ background-color: {input_bg} !important; border: 1px solid {input_border} !important; border-radius: 16px !important; }}
-    .stChatInputContainer:focus-within {{ border-color: #f97316 !important; }}
-    .stChatInputContainer textarea {{ color: {text_color} !important; }}
-
+    
     /* Form Đăng Nhập Kính Mờ */
     .unified-auth-card {{
-        background: {card_bg};
-        backdrop-filter: blur(20px);
-        border: 1px solid {border_color};
-        border-radius: 24px;
-        padding: 40px 30px;
+        background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.1);
-        color: {text_color};
     }}
-
-    /* Tắt viền kép mặc định của Form Streamlit */
-    [data-testid="stForm"] {{
-        border: none !important;
-        padding: 0 !important;
-        background: transparent !important;
-    }}
-
-    /* Tuỳ chỉnh nút bấm hệ thống và nút SSO */
-    .stButton>button, .stLinkButton>a>button {{ 
-        border-radius: 10px; font-weight: 600; transition: all 0.2s; border: 1px solid {border_color};
-        background: {btn_bg}; color: {text_color};
-    }}
-    .stButton>button:hover, .stLinkButton>a>button:hover {{ 
-        border-color: #f97316 !important; color: #f97316 !important; background: rgba(249, 115, 22, 0.1);
-    }}
+    [data-testid="stForm"] {{ border: none !important; padding: 0 !important; background: transparent !important; }}
     
-    div[data-testid="stForm"] .stButton>button {{
-        background: #f97316 !important; color: white !important; border: none !important;
+    /* Nút Bấm */
+    .stButton>button, .stLinkButton>a>button {{ 
+        border-radius: 10px; font-weight: 600; transition: all 0.2s; border: 1px solid {border_color} !important;
+        background: {btn_bg} !important; 
     }}
-    div[data-testid="stForm"] .stButton>button:hover {{
-        background: #ea580c !important; box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3);
-    }}
+    .stButton>button:hover, .stLinkButton>a>button:hover {{ border-color: #f97316 !important; color: #f97316 !important; }}
+    div[data-testid="stForm"] .stButton>button {{ background: #f97316 !important; color: white !important; border: none !important; }}
+    div[data-testid="stForm"] .stButton>button:hover {{ background: #ea580c !important; box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3); }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -176,7 +162,7 @@ if "code" in query_params and "state" in query_params:
 with st.sidebar:
     st.markdown("<div class='sidebar-logo'>Gordon Rox</div>", unsafe_allow_html=True)
     
-    st.markdown("<div style='font-size:0.9em; font-weight:600; margin-bottom:5px;'>🌓 Giao diện:</div>", unsafe_allow_html=True)
+    st.markdown("<div style='font-weight:600; margin-bottom:5px;'>🌓 Giao diện:</div>", unsafe_allow_html=True)
     st.session_state.theme_mode = st.radio("Chọn màu:", ["Dark", "Light"], label_visibility="collapsed", horizontal=True)
     
     st.divider()
@@ -196,7 +182,7 @@ with st.sidebar:
                 st.session_state.auth_view = "home"
                 st.rerun()
         else:
-            st.markdown("<div style='color: #94a3b8; font-size: 0.9em; text-align: center; margin-bottom:10px;'>Bạn chưa đăng nhập</div>", unsafe_allow_html=True)
+            st.markdown("<div style='font-size: 0.9em; text-align: center; margin-bottom:10px;'>Bạn chưa đăng nhập</div>", unsafe_allow_html=True)
             if st.button("🔑 Sign In / Up", type="primary", use_container_width=True):
                 st.session_state.auth_view = "login"
                 st.rerun()
@@ -222,7 +208,7 @@ if st.session_state.auth_view == "home":
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     def quick_action_card(col, icon, title, subtitle, target_url):
         with col:
-            st.markdown(f"""<a href="{target_url}" target="_self" style="text-decoration: none; display: block;"><div class="glass-card-btn"><div class="glass-card-icon">{icon}</div><div class="glass-card-title">{title}</div><div class="glass-card-subtitle">{subtitle}</div></div></a>""", unsafe_allow_html=True)
+            st.markdown(f"""<a href="{target_url}" target="_self" style="display: block;"><div class="glass-card-btn"><div class="glass-card-icon">{icon}</div><div class="glass-card-title">{title}</div><div class="glass-card-subtitle">{subtitle}</div></div></a>""", unsafe_allow_html=True)
             
     quick_action_card(col_q1, "📸", "Phân tích món ăn", "Tải ảnh lên để AI nhận diện", "Dau_Bep_AI")
     quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì", "Tu_Lanh")
@@ -232,7 +218,7 @@ if st.session_state.auth_view == "home":
     chat_container = st.container(height=350)
     with chat_container:
         if not st.session_state.preview_chat: 
-            st.markdown("<div style='text-align: center; color: #64748b; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
+            st.markdown("<div style='text-align: center; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
         for msg in st.session_state.preview_chat: 
             with st.chat_message(msg["role"]): 
                 st.markdown(msg["content"])
@@ -271,7 +257,7 @@ elif st.session_state.auth_view == "login":
             try: st.link_button("📘 Facebook", url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id={st.secrets['FACEBOOK_CLIENT_ID']}&redirect_uri=https://gordon-rox.streamlit.app/&state=facebook&scope=public_profile", use_container_width=True)
             except: st.button("📘 Facebook", disabled=True, use_container_width=True)
 
-        st.markdown("<div style='margin: 25px 0; color: #64748b; font-size: 0.85em; text-align:center; letter-spacing: 1px;'>— HOẶC TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin: 25px 0; font-size: 0.85em; text-align:center; letter-spacing: 1px;'>— HOẶC TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
         
         with st.form("login_form"):
             user_in = st.text_input("Tài khoản", placeholder="Username")
@@ -305,7 +291,7 @@ elif st.session_state.auth_view == "signup":
     with col2:
         st.markdown("""<div class='unified-auth-card'>
             <h2 style='text-align:center; margin-bottom:10px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2>
-            <p style='text-align:center; color:#94a3b8; margin-bottom:30px;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>
+            <p style='text-align:center; margin-bottom:30px;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>
         """, unsafe_allow_html=True)
         
         with st.form("signup_form"):
