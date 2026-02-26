@@ -70,40 +70,70 @@ st.markdown("""
     /* Auth Box - Form đăng nhập */
     .auth-box { background: rgba(22, 24, 29, 0.9); border: 1px solid #333842; border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
     
-    /* Tuỳ chỉnh nút bấm hệ thống để không bị tàng hình */
+    /* Tuỳ chỉnh nút bấm hệ thống */
     .stButton>button { border-radius: 8px; font-weight: 600; transition: all 0.2s; }
     .stButton>button:hover { border-color: #f97316 !important; color: #f97316 !important; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
-# 🚀 XỬ LÝ ĐĂNG NHẬP GITHUB NGẦM
+# 🚀 XỬ LÝ ĐĂNG NHẬP ĐA NỀN TẢNG (SSO)
 # ==========================================
 query_params = st.query_params
-if "code" in query_params:
+# Chỉ chạy khi có 'code' VÀ có 'state' (để phân biệt Discord hay Github)
+if "code" in query_params and "state" in query_params:
     code = query_params["code"]
-    st.query_params.clear()
-    try:
-        token_url = "https://github.com/login/oauth/access_token"
-        res = requests.post(token_url, data={"client_id": st.secrets["GITHUB_CLIENT_ID"], "client_secret": st.secrets["GITHUB_CLIENT_SECRET"], "code": code}, headers={"Accept": "application/json"})
-        if res.status_code == 200 and res.json().get("access_token"):
-            access_token = res.json().get("access_token")
-            user_res = requests.get("https://api.github.com/user", headers={"Authorization": f"token {access_token}"})
-            if user_res.status_code == 200:
-                username = user_res.json().get("login")
-                users = load_db(USER_DB)
-                if username not in users:
-                    users[username] = {"password": "github_oauth_user", "fridge": []}
-                    save_db(USER_DB, users)
-                st.session_state.logged_in = True
-                st.session_state.username = username
-                st.session_state.user_data = users[username]
-                st.session_state.auth_view = "home"
-                st.rerun()
-    except: pass
+    state = query_params["state"]
+    st.query_params.clear() # Dọn sạch thanh địa chỉ cho đẹp
+    
+    username = None
+    
+    # 1. Nếu là GITHUB
+    if state == "github":
+        try:
+            token_url = "https://github.com/login/oauth/access_token"
+            res = requests.post(token_url, data={"client_id": st.secrets["GITHUB_CLIENT_ID"], "client_secret": st.secrets["GITHUB_CLIENT_SECRET"], "code": code}, headers={"Accept": "application/json"})
+            if res.status_code == 200 and res.json().get("access_token"):
+                access_token = res.json().get("access_token")
+                user_res = requests.get("https://api.github.com/user", headers={"Authorization": f"token {access_token}"})
+                if user_res.status_code == 200:
+                    username = f"{user_res.json().get('login')} (GitHub)"
+        except: pass
+
+    # 2. Nếu là DISCORD
+    elif state == "discord":
+        try:
+            token_url = "https://discord.com/api/oauth2/token"
+            data = {
+                "client_id": st.secrets["DISCORD_CLIENT_ID"],
+                "client_secret": st.secrets["DISCORD_CLIENT_SECRET"],
+                "grant_type": "authorization_code",
+                "code": code,
+                "redirect_uri": "https://gordon-rox.streamlit.app/" # PHẢI GIỐNG 100% TRONG DISCORD DEVELOPER
+            }
+            headers = {"Content-Type": "application/x-www-form-urlencoded"}
+            res = requests.post(token_url, data=data, headers=headers)
+            if res.status_code == 200 and res.json().get("access_token"):
+                access_token = res.json().get("access_token")
+                user_res = requests.get("https://discord.com/api/users/@me", headers={"Authorization": f"Bearer {access_token}"})
+                if user_res.status_code == 200:
+                    username = f"{user_res.json().get('username')} (Discord)"
+        except: pass
+
+    # 3. Đăng nhập thành công (cho cả Github và Discord)
+    if username:
+        users = load_db(USER_DB)
+        if username not in users:
+            users[username] = {"password": "oauth_user_no_pass", "fridge": []}
+            save_db(USER_DB, users)
+        st.session_state.logged_in = True
+        st.session_state.username = username
+        st.session_state.user_data = users[username]
+        st.session_state.auth_view = "home"
+        st.rerun()
 
 # ==========================================
-# 📱 THANH BÊN (SIDEBAR) ĐÃ FIX NÚT CHÌM
+# 📱 THANH BÊN (SIDEBAR) 
 # ==========================================
 with st.sidebar:
     st.markdown("<div class='sidebar-logo'>Gordon Rox</div>", unsafe_allow_html=True)
@@ -142,14 +172,12 @@ if st.session_state.auth_view == "home":
             st.rerun()
 
 # ==========================================
-# 🖥️ NỘI DUNG CHÍNH 
+# 🖥️ NỘI DUNG CHÍNH (TRANG CHỦ)
 # ==========================================
 if st.session_state.auth_view == "home":
-    # Cập nhật tên người dùng linh hoạt
     greeting_name = st.session_state.username if st.session_state.logged_in else "Bạn"
     st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 10px 0 40px; font-weight: 800;'>Xin chào, <span style='color:#f97316;'>{greeting_name}</span>!<br>Hôm nay chúng ta nấu gì nhỉ?</h1>", unsafe_allow_html=True)
 
-    # Thẻ tính năng (Click trực tiếp)
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     def quick_action_card(col, icon, title, subtitle, target_url):
         with col:
@@ -169,7 +197,6 @@ if st.session_state.auth_view == "home":
 
     st.write("<br>", unsafe_allow_html=True)
 
-    # Khung Chat AI
     chat_container = st.container(height=350)
     with chat_container:
         if not st.session_state.preview_chat:
@@ -191,20 +218,34 @@ if st.session_state.auth_view == "home":
                     st.markdown(res.text)
                     st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
 
-# --- TRANG ĐĂNG NHẬP (ĐÃ CẬP NHẬT NÚT GITHUB RÕ RÀNG) ---
+# --- TRANG ĐĂNG NHẬP (GIAO DIỆN MỚI CHO GITHUB & DISCORD) ---
 elif st.session_state.auth_view == "login":
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         st.markdown("<div class='auth-box'><h2 style='margin-bottom:20px;'>👋 Đăng nhập hệ thống</h2>", unsafe_allow_html=True)
         
-        # Sửa hiển thị Github: Nếu ko có key, hiện cảnh báo thay vì biến mất
+        # --- KHU VỰC NÚT BẤM SSO ---
+        st.markdown("<div style='display:flex; gap:10px; margin-bottom:15px;'>", unsafe_allow_html=True)
+        
+        # Nút GitHub
         try:
-            client_id = st.secrets["GITHUB_CLIENT_ID"]
-            auth_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=read:user"
-            st.link_button("🐙 Tiếp tục bằng GitHub (Khuyên dùng)", url=auth_url, type="primary", use_container_width=True)
-        except KeyError:
-            st.error("⚠️ Tính năng GitHub Login đang bị tắt (Chưa cấu hình GITHUB_CLIENT_ID).")
-            
+            gh_id = st.secrets["GITHUB_CLIENT_ID"]
+            # Lưu ý có &state=github ở cuối link
+            gh_url = f"https://github.com/login/oauth/authorize?client_id={gh_id}&scope=read:user&state=github"
+            st.markdown(f"<a href='{gh_url}' target='_self' style='flex:1; text-decoration:none;'><button style='width:100%; padding:10px; border-radius:8px; border:none; background:#24292e; color:white; font-weight:bold; cursor:pointer; font-family: Inter, sans-serif;'>🐙 GitHub</button></a>", unsafe_allow_html=True)
+        except KeyError: pass
+
+        # Nút Discord
+        try:
+            dc_id = st.secrets["DISCORD_CLIENT_ID"]
+            # Lưu ý có &state=discord ở cuối link
+            dc_url = f"https://discord.com/api/oauth2/authorize?client_id={dc_id}&redirect_uri=https://gordon-rox.streamlit.app/&response_type=code&scope=identify&state=discord"
+            st.markdown(f"<a href='{dc_url}' target='_self' style='flex:1; text-decoration:none;'><button style='width:100%; padding:10px; border-radius:8px; border:none; background:#5865F2; color:white; font-weight:bold; cursor:pointer; font-family: Inter, sans-serif;'>🎮 Discord</button></a>", unsafe_allow_html=True)
+        except KeyError: pass
+        
+        st.markdown("</div>", unsafe_allow_html=True)
+        # --- KẾT THÚC KHU VỰC SSO ---
+
         st.markdown("<div style='margin: 15px 0; color: #64748b; font-size: 0.8em;'>— HOẶC SỬ DỤNG TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
         
         with st.form("login_form"):
