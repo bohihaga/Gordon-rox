@@ -3,7 +3,7 @@ import google.generativeai as genai
 import requests
 from utils import init_system, hash_pass, load_db, save_db, USER_DB
 
-# Cấu hình trang: Sidebar luôn mở để giống Gemini
+# Cấu hình trang: Sidebar mở sẵn, giao diện Wide
 st.set_page_config(page_title="Gordon Rox | AI Culinary", page_icon="✨", layout="wide", initial_sidebar_state="expanded")
 init_system()
 
@@ -12,63 +12,65 @@ if "auth_view" not in st.session_state: st.session_state.auth_view = "home"
 if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
 
 # ==========================================
-# 🎨 CSS MAGIC - GIAO DIỆN GEMINI DARK MODE
+# 🎨 CSS MAGIC - CHUẨN VENICE AI / GEMINI
 # ==========================================
 st.markdown("""
     <style>
-    /* Nền tối gradient chủ đạo */
-    .stApp { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f8fafc; }
+    /* Nền tối gradient sâu, sang trọng */
+    .stApp { background: linear-gradient(135deg, #090e17 0%, #161230 100%); color: #f8fafc; }
     header {visibility: hidden;}
     
-    /* Sidebar */
+    /* Sidebar làm mờ */
     [data-testid="stSidebar"] {
-        background: rgba(15, 23, 42, 0.6);
+        background: rgba(15, 23, 42, 0.4);
         backdrop-filter: blur(20px);
         border-right: 1px solid rgba(255,255,255,0.05);
     }
     .sidebar-logo { font-size: 1.5rem; font-weight: 900; background: -webkit-linear-gradient(45deg, #f97316, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
 
-    /* Top Navigation Bar area */
-    .top-nav-container {
-        display: flex;
-        justify-content: flex-end;
-        align-items: center;
-        padding: 10px 0;
-        margin-bottom: 30px;
-    }
-
-    /* Glassmorphism Cards (Cho các nút tác vụ nhanh) */
+    /* ==========================================
+       🌟 THIẾT KẾ CARD TÁC VỤ SIÊU MƯỢT 
+       ========================================== */
     .glass-card-btn {
-        background: rgba(255, 255, 255, 0.05);
+        background: rgba(30, 41, 59, 0.4);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        border-radius: 12px;
-        padding: 20px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        border-radius: 16px;
+        padding: 25px 15px;
         text-align: center;
         transition: all 0.3s ease;
+        height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-        margin-bottom: 10px;
+        cursor: pointer;
     }
-    .glass-card-icon { font-size: 2.5rem; margin-bottom: 10px; }
-    .glass-card-title { font-weight: 600; font-size: 1.1rem; }
+    /* Hiệu ứng nổi bật khi di chuột vào Thẻ */
+    .glass-card-btn:hover {
+        background: rgba(45, 55, 72, 0.8);
+        border-color: rgba(249, 115, 22, 0.4);
+        transform: translateY(-5px);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+    }
+    .glass-card-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .glass-card-title { font-weight: 600; font-size: 1.15rem; color: #ffffff; }
+    .glass-card-subtitle { color:#94a3b8; font-size:0.9em; margin-top:6px; font-weight:400; }
 
-    /* Các phần tử Auth (Đăng nhập/Đăng ký) */
+    /* ========================================== */
+
+    /* Các phần tử Auth */
     .auth-box { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid #334155; border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; }
     
-    /* Nút bấm */
+    /* Hệ thống nút bấm */
     .stButton>button { border-radius: 8px; font-weight: 600; transition: all 0.3s ease; }
-    /* Nút "New Chat" và các nút chính */
     .btn-primary>div>button { background: linear-gradient(90deg, #f97316, #ec4899); color: white; border: none; padding: 8px 16px; }
     .btn-primary>div>button:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); }
-    /* Nút phụ (Sign In / Đăng xuất) */
     .btn-outline>div>button { background: transparent; color: #f8fafc; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; }
     .btn-outline>div>button:hover { border-color: #f97316; color: #f97316; background: rgba(255,255,255,0.05); }
 
     /* Chat Input */
-    .stChatInputContainer { border-radius: 12px; border: 1px solid rgba(255,255,255,0.1) !important; background: rgba(0,0,0,0.3) !important; }
+    .stChatInputContainer { border-radius: 12px; border: 1px solid rgba(255,255,255,0.1) !important; background: rgba(0,0,0,0.3) !important; padding-bottom: 10px; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -101,7 +103,7 @@ if "code" in query_params:
     except: pass
 
 # ==========================================
-# 📱 THANH BÊN (SIDEBAR) - Logo & Menu
+# 📱 THANH BÊN (SIDEBAR)
 # ==========================================
 with st.sidebar:
     st.markdown("<div class='sidebar-logo'>👨‍🍳 Gordon Rox AI</div>", unsafe_allow_html=True)
@@ -139,40 +141,38 @@ with col_user:
 # 🖥️ NỘI DUNG CHÍNH (MAIN CONTENT ROUTING)
 # ==========================================
 
-# --- TRANG CHỦ (HOME) ---
 if st.session_state.auth_view == "home":
     greeting_name = st.session_state.username if st.session_state.logged_in else "Bạn"
-    st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 40px 0 20px;'>Xin chào, {greeting_name}! <br>Hôm nay chúng ta nấu gì nhỉ?</h1>", unsafe_allow_html=True)
+    st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 20px 0 40px;'>Xin chào, {greeting_name}! <br>Hôm nay chúng ta nấu gì nhỉ?</h1>", unsafe_allow_html=True)
 
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     
-    # 🛠️ HÀM TẠO THẺ TÁC VỤ CÓ NÚT BẤM CHUYỂN TRANG
-    def quick_action_card(col, icon, title, subtitle, target_page):
+    # 🛠️ NÂNG CẤP: THẺ BẤM LIỀN MẠCH, KHÔNG CÓ NÚT THỪA
+    def quick_action_card(col, icon, title, subtitle, target_url):
         with col:
+            # Bao bọc toàn bộ thẻ bằng thẻ <a> để click chuyển trang trực tiếp
             st.markdown(f"""
-            <div class="glass-card-btn">
-                <div class="glass-card-icon">{icon}</div>
-                <div class="glass-card-title">{title}</div>
-                <div style="color:#94a3b8; font-size:0.9em;">{subtitle}</div>
-            </div>
+            <a href="{target_url}" target="_self" style="text-decoration: none; color: inherit; display: block;">
+                <div class="glass-card-btn">
+                    <div class="glass-card-icon">{icon}</div>
+                    <div class="glass-card-title">{title}</div>
+                    <div class="glass-card-subtitle">{subtitle}</div>
+                </div>
+            </a>
             """, unsafe_allow_html=True)
-            
-            st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
-            if st.button(f"🚀 Mở {title}", key=f"btn_{title}", use_container_width=True):
-                st.switch_page(target_page)
-            st.markdown('</div>', unsafe_allow_html=True)
 
-    # Đã nối nút bấm vào 3 trang của bạn
-    quick_action_card(col_q1, "📸", "Phân tích món ăn", "Tải ảnh lên để AI nhận diện", "pages/1_🍳_Dau_Bep_AI.py")
-    quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì", "pages/2_❄️_Tu_Lanh.py")
-    quick_action_card(col_q3, "🌍", "Cộng đồng ẩm thực", "Khám phá công thức từ mọi người", "pages/3_🌍_Dien_Dan.py")
+    # Khớp đúng URL của Streamlit (Tự động bỏ số và .py)
+    quick_action_card(col_q1, "📸", "Phân tích món ăn", "Tải ảnh lên để AI nhận diện", "Dau_Bep_AI")
+    quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì", "Tu_Lanh")
+    quick_action_card(col_q3, "🌍", "Cộng đồng ẩm thực", "Khám phá công thức từ mọi người", "Dien_Dan")
 
-    st.write("---") 
+    st.write("<br><br>", unsafe_allow_html=True)
 
-    chat_container = st.container(height=400)
+    # Khung Chat dưới cùng
+    chat_container = st.container(height=350)
     with chat_container:
         if not st.session_state.preview_chat:
-             st.markdown("<div style='text-align: center; color: gray; margin-top: 150px;'>Nhập câu hỏi bên dưới để bắt đầu trò chuyện nhanh...</div>", unsafe_allow_html=True)
+             st.markdown("<div style='text-align: center; color: gray; margin-top: 130px;'>Nhập câu hỏi bên dưới để bắt đầu trò chuyện nhanh...</div>", unsafe_allow_html=True)
         for msg in st.session_state.preview_chat:
             with st.chat_message(msg["role"]): st.markdown(msg["content"])
             
