@@ -71,7 +71,10 @@ with st.expander("📎 Bấm vào đây để đính kèm hình ảnh (JPG, PNG)
     img_file = st.file_uploader("Tải ảnh lên...", type=["png", "jpg", "jpeg"], label_visibility="collapsed")
     if img_file:
         img = Image.open(img_file)
-        st.image(img, height=200)
+        
+        # ĐÃ SỬA LỖI Ở ĐÂY: Dùng width thay cho height
+        st.image(img, width=400) 
+        
         if st.button("🚀 Phân tích ảnh này", type="primary"):
             with st.spinner("Đang phân tích..."):
                 prompt = "Phân tích ảnh này và cho tôi biết công thức hoặc đánh giá của bạn."
@@ -90,8 +93,7 @@ for msg in st.session_state.vip_chat:
 chat_text = st.chat_input("Nhập câu hỏi chi tiết về món ăn...")
 if chat_text:
     st.session_state.vip_chat.append({"role": "user", "content": chat_text})
-    with st.chat_message("user", avatar="🧑‍🍳"): 
-        st.markdown(chat_text)
+    with st.chat_message("user", avatar="🧑‍🍳"): st.markdown(chat_text)
     with st.chat_message("assistant", avatar="✨"):
         with st.spinner("Đang gõ..."):
             res = st.session_state.full_ai_session.send_message(chat_text)
