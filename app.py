@@ -4,14 +4,14 @@ import requests
 from utils import init_system, hash_pass, load_db, save_db, USER_DB
 
 # Cấu hình trang: Giao diện rộng, Sidebar mở sẵn
-st.set_page_config(page_title="Gordon Rox | Venice UI", page_icon="✨", layout="wide", initial_sidebar_state="expanded")
+st.set_page_config(page_title="Gordon Rox | AI Culinary", page_icon="🧑‍🍳", layout="wide", initial_sidebar_state="expanded")
 init_system()
 
 if "auth_view" not in st.session_state: st.session_state.auth_view = "home"
 if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
 
 # ==========================================
-# 🎨 CSS CHUẨN VENICE (ĐÃ TỐI ƯU GIAO DIỆN ĐĂNG NHẬP)
+# 🎨 CSS CHUẨN VENICE
 # ==========================================
 st.markdown("""
     <style>
@@ -37,7 +37,6 @@ st.markdown("""
     .stChatInputContainer:focus-within { border-color: #f97316 !important; }
     .stChatInputContainer textarea { color: #f8fafc !important; }
 
-    /* Thẻ tính năng ngoài trang chủ */
     .glass-card-btn {
         background: #16181d; border: 1px solid #272a30; border-radius: 16px; padding: 25px 15px;
         text-align: center; transition: all 0.2s ease; height: 100%;
@@ -48,26 +47,21 @@ st.markdown("""
     .glass-card-title { font-weight: 600; font-size: 1.1rem; color: #f8fafc; }
     .glass-card-subtitle { color:#64748b; font-size:0.85em; margin-top:8px; }
 
-    /* 🔥 CẬP NHẬT QUAN TRỌNG CHO FORM ĐĂNG NHẬP 🔥 */
-    
-    /* 1. Chiếc hộp kính mờ chứa tất cả */
     .unified-auth-card {
-        background: rgba(22, 24, 29, 0.8); /* Mờ hơn chút cho sang */
+        background: rgba(22, 24, 29, 0.8);
         backdrop-filter: blur(20px);
         border: 1px solid #333842;
-        border-radius: 24px; /* Bo tròn hơn */
+        border-radius: 24px;
         padding: 40px 30px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     }
 
-    /* 2. TẮT ĐIỆN viền mặc định của Form Streamlit */
     [data-testid="stForm"] {
         border: none !important;
         padding: 0 !important;
         background: transparent !important;
     }
 
-    /* Tuỳ chỉnh nút bấm hệ thống và nút Link (SSO) */
     .stButton>button, .stLinkButton>a>button { 
         border-radius: 10px; font-weight: 600; transition: all 0.2s; border: 1px solid #333842;
         background: rgba(255,255,255,0.05); color: #e2e8f0;
@@ -75,7 +69,6 @@ st.markdown("""
     .stButton>button:hover, .stLinkButton>a>button:hover { 
         border-color: #f97316 !important; color: #f97316 !important; background: rgba(249, 115, 22, 0.1);
     }
-    /* Nút Primary (Vào Bếp/Đăng Ký) nổi bật hơn */
     div[data-testid="stForm"] .stButton>button {
         background: #f97316 !important; color: white !important; border: none !important;
     }
@@ -190,7 +183,6 @@ if st.session_state.auth_view == "home":
     with chat_container:
         if not st.session_state.preview_chat: 
             st.markdown("<div style='text-align: center; color: #64748b; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
-        # ĐÃ SỬA LỖI THỤT LỀ Ở ĐÂY 👇
         for msg in st.session_state.preview_chat: 
             with st.chat_message(msg["role"]): 
                 st.markdown(msg["content"])
@@ -212,22 +204,24 @@ if st.session_state.auth_view == "home":
 # 🔥 GIAO DIỆN ĐĂNG NHẬP MỚI
 # ============================================================
 elif st.session_state.auth_view == "login":
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    # Mở rộng cột giữa từ 1.2 lên 1.6 để form rộng rãi hơn, chữ không bị rớt dòng
+    col1, col2, col3 = st.columns([1, 1.6, 1])
     with col2:
+        # Ép chữ Đăng Nhập Hệ Thống không được rớt dòng
         st.markdown("""<div class='unified-auth-card'>
-            <h2 style='text-align:center; margin-bottom:30px; font-weight:800;'>👋 Đăng Nhập Hệ Thống</h2>
+            <h2 style='text-align:center; margin-bottom:30px; font-weight:800; font-size: 1.9rem; white-space: nowrap;'>👋 Đăng Nhập Hệ Thống</h2>
         """, unsafe_allow_html=True)
         
         col_gh, col_dc, col_fb = st.columns(3)
         with col_gh:
             try: st.link_button("🐙 GitHub", url=f"https://github.com/login/oauth/authorize?client_id={st.secrets['GITHUB_CLIENT_ID']}&scope=read:user&state=github", use_container_width=True)
-            except: pass
+            except: st.button("🐙 GitHub", disabled=True, use_container_width=True)
         with col_dc:
             try: st.link_button("🎮 Discord", url=f"https://discord.com/api/oauth2/authorize?client_id={st.secrets['DISCORD_CLIENT_ID']}&redirect_uri=https://gordon-rox.streamlit.app/&response_type=code&scope=identify&state=discord", use_container_width=True)
-            except: pass
+            except: st.button("🎮 Discord", disabled=True, use_container_width=True)
         with col_fb:
             try: st.link_button("📘 Facebook", url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id={st.secrets['FACEBOOK_CLIENT_ID']}&redirect_uri=https://gordon-rox.streamlit.app/&state=facebook&scope=public_profile", use_container_width=True)
-            except: pass
+            except: st.button("📘 Facebook", disabled=True, use_container_width=True)
 
         st.markdown("<div style='margin: 25px 0; color: #64748b; font-size: 0.85em; text-align:center; letter-spacing: 1px;'>— HOẶC TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
         
@@ -259,10 +253,10 @@ elif st.session_state.auth_view == "login":
 # 🔥 GIAO DIỆN ĐĂNG KÝ MỚI
 # ============================================================
 elif st.session_state.auth_view == "signup":
-    col1, col2, col3 = st.columns([1, 1.2, 1])
+    col1, col2, col3 = st.columns([1, 1.6, 1])
     with col2:
         st.markdown("""<div class='unified-auth-card'>
-            <h2 style='text-align:center; margin-bottom:30px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2>
+            <h2 style='text-align:center; margin-bottom:10px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2>
             <p style='text-align:center; color:#94a3b8; margin-bottom:30px;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>
         """, unsafe_allow_html=True)
         
