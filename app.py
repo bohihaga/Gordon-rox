@@ -240,7 +240,7 @@ elif st.session_state.auth_view == "login":
             dc_id = st.secrets["DISCORD_CLIENT_ID"]
             # Lưu ý có &state=discord ở cuối link
             dc_url = f"https://discord.com/api/oauth2/authorize?client_id={dc_id}&redirect_uri=https://gordon-rox.streamlit.app/&response_type=code&scope=identify&state=discord"
-            st.markdown(f"<a href='{dc_url}' target='_self' style='flex:1; text-decoration:none;'><button style='width:100%; padding:10px; border-radius:8px; border:none; background:#5865F2; color:white; font-weight:bold; cursor:pointer; font-family: Inter, sans-serif;'>🎮 Discord</button></a>", unsafe_allow_html=True)
+            st.markdown(f"<a href='{dc_url}' target='_blank' style='flex:1; text-decoration:none;'><button style='width:100%; padding:10px; border-radius:8px; border:none; background:#5865F2; color:white; font-weight:bold; cursor:pointer; font-family: Inter, sans-serif;'>🎮 Discord</button></a>", unsafe_allow_html=True)
         except KeyError: pass
         
         st.markdown("</div>", unsafe_allow_html=True)
@@ -294,3 +294,4 @@ elif st.session_state.auth_view == "signup":
         with c2:
              if st.button("← Quay lại Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
+
