@@ -15,32 +15,70 @@ if "theme_mode" not in st.session_state: st.session_state.theme_mode = "Dark"
 # ==========================================
 # 🎨 HỆ THỐNG GIAO DIỆN CHUẨN MỰC
 # ==========================================
+# Đã đổi btn_bg thành màu Đen đặc thay vì rgba để chống lộ nền trắng
 if st.session_state.theme_mode == "Dark":
     bg_color, text_color, card_bg, sidebar_bg, border_color = "#0f1115", "#f8fafc", "#1e2026", "#16181d", "#272a30"
     input_bg, input_border = "#16181d", "#333842"
-    btn_bg = "rgba(255,255,255,0.05)"
+    btn_bg = "#1e2026" 
 else:
     bg_color, text_color, card_bg, sidebar_bg, border_color = "#ffffff", "#1e293b", "#f8fafc", "#f1f5f9", "#e2e8f0"
     input_bg, input_border = "#ffffff", "#cbd5e1"
-    btn_bg = "rgba(0,0,0,0.05)"
+    btn_bg = "#f1f5f9"
 
 st.markdown(f"""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap');
     
-    /* 1. SỬA LỖI KEYBOARD_DOUBLE: Không ép Font lên các Icon của hệ thống */
-    body, p, h1, h2, h3, h4, h5, h6, div, input, textarea {{
-        font-family: 'Inter', sans-serif !important;
-    }}
+    body, p, h1, h2, h3, h4, h5, h6, div, input, textarea {{ font-family: 'Inter', sans-serif !important; }}
 
-    /* 2. ÉP MÀU NỀN VÀ MÀU CHỮ SÁNG/TỐI (Tất cả mọi chữ đều phải tuân thủ) */
+    /* Ép màu nền và màu chữ TỔNG THỂ */
     .stApp {{ background-color: {bg_color}; }}
-    div, p, span, a, label, h1, h2, h3, h4, h5, h6, li {{
-        color: {text_color} !important; 
-    }}
+    div, p, span, a, label, h1, h2, h3, h4, h5, h6, li {{ color: {text_color} !important; }}
     a {{ text-decoration: none !important; }}
     
-    /* 3. TRIỆT TIÊU MẢNG TRẮNG Ở ĐÁY & CHAT INPUT */
+    /* 🔥 TRỊ LỖI Ô TEXT INPUT TRẮNG TOÁT 🔥 */
+    [data-baseweb="input"], [data-baseweb="input"] > div {{
+        background-color: {input_bg} !important;
+        border-color: {input_border} !important;
+    }}
+    input[type="text"], input[type="password"] {{
+        color: {text_color} !important;
+        background-color: {input_bg} !important;
+        -webkit-text-fill-color: {text_color} !important; /* Ép chữ gõ vào không bị tàng hình */
+    }}
+
+    /* 🔥 TRỊ LỖI NÚT BẤM SSO (LINK BUTTON) TRẮNG TOÁT 🔥 */
+    [data-testid="stButton"] button, 
+    [data-testid="stLinkButton"] button,
+    button[kind="secondary"] {{ 
+        border-radius: 10px !important; 
+        font-weight: 600 !important; 
+        transition: all 0.2s !important; 
+        border: 1px solid {border_color} !important;
+        background-color: {btn_bg} !important; 
+        color: {text_color} !important;
+    }}
+    [data-testid="stButton"] button:hover, 
+    [data-testid="stLinkButton"] button:hover {{ 
+        border-color: #f97316 !important; 
+        color: #f97316 !important; 
+    }}
+
+    /* 🔥 NÚT VÀO BẾP NGAY (FORM SUBMIT) ÉP MÀU CAM 🔥 */
+    [data-testid="stFormSubmitButton"] button {{ 
+        background-color: #f97316 !important; 
+        color: white !important; 
+        border: none !important; 
+        border-radius: 10px !important;
+        font-weight: 600 !important;
+    }}
+    [data-testid="stFormSubmitButton"] button:hover {{ 
+        background-color: #ea580c !important; 
+        box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3) !important; 
+        color: white !important;
+    }}
+
+    /* Xử lý mảng trắng ở đáy và Chat Input */
     [data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlock"] {{
         background-color: {bg_color} !important; 
     }}
@@ -51,7 +89,7 @@ st.markdown(f"""
     }}
     .stChatInputContainer:focus-within {{ border-color: #f97316 !important; }}
     
-    /* 4. LÀM SÁNG HỘP CHATBOX BÊN TRONG */
+    /* Làm sáng hộp Chatbox */
     [data-testid="stVerticalBlockBorderWrapper"] {{
         background-color: {card_bg} !important;
         border-radius: 16px !important;
@@ -59,7 +97,7 @@ st.markdown(f"""
         padding: 10px;
     }}
 
-    /* 5. TẨY SẠCH MANAGE APP & HEADER */
+    /* Tẩy sạch Manage App & Header */
     .viewerBadge_container, .viewerBadge_link, [data-testid="stAppDeployButton"], [data-testid="stToolbar"], footer, [data-testid="stFooter"] {{ 
         display: none !important; 
     }}
@@ -76,31 +114,13 @@ st.markdown(f"""
         font-family: 'Playfair Display', serif !important; 
         font-size: 2.2rem; color: {text_color} !important; margin-bottom: 25px; padding-left: 10px; font-style: italic;
     }}
-
-    /* Card Trang Chủ */
-    .glass-card-btn {{
-        background: {sidebar_bg}; border: 1px solid {border_color}; border-radius: 16px; padding: 25px 15px;
-        text-align: center; transition: all 0.2s ease; height: 100%;
-        display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer;
-    }}
-    .glass-card-btn:hover {{ border-color: #f97316 !important; transform: translateY(-3px); }}
-    .glass-card-icon {{ font-size: 2.2rem; margin-bottom: 15px; }}
     
     /* Form Đăng Nhập Kính Mờ */
     .unified-auth-card {{
         background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.1);
+        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
     }}
     [data-testid="stForm"] {{ border: none !important; padding: 0 !important; background: transparent !important; }}
-    
-    /* Nút Bấm */
-    .stButton>button, .stLinkButton>a>button {{ 
-        border-radius: 10px; font-weight: 600; transition: all 0.2s; border: 1px solid {border_color} !important;
-        background: {btn_bg} !important; 
-    }}
-    .stButton>button:hover, .stLinkButton>a>button:hover {{ border-color: #f97316 !important; color: #f97316 !important; }}
-    div[data-testid="stForm"] .stButton>button {{ background: #f97316 !important; color: white !important; border: none !important; }}
-    div[data-testid="stForm"] .stButton>button:hover {{ background: #ea580c !important; box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3); }}
     </style>
 """, unsafe_allow_html=True)
 
@@ -201,18 +221,49 @@ if st.session_state.auth_view == "home":
 # 🖥️ NỘI DUNG CHÍNH (TRANG CHỦ)
 # ==========================================
 if st.session_state.auth_view == "home":
+    # CSS CỦA NÚT Ở TRANG CHỦ
+    st.markdown(f"""
+        <style>
+        div[data-testid="column"] .stButton > button {{
+            height: 90px !important;
+            border-radius: 16px !important;
+            font-size: 1.2rem !important;
+            background-color: {sidebar_bg} !important;
+            border: 1px solid {border_color} !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+            color: {text_color} !important;
+        }}
+        div[data-testid="column"] .stButton > button:hover {{
+            border-color: #f97316 !important;
+            transform: translateY(-3px) !important;
+            color: #f97316 !important;
+        }}
+        </style>
+    """, unsafe_allow_html=True)
+
     greeting_name = st.session_state.username if st.session_state.get("logged_in") else "Bạn"
     st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 10px 0 10px; font-weight: 800;'>Xin chào, <span style='color:#f97316;'>{greeting_name}</span>!</h1>", unsafe_allow_html=True)
     st.markdown(f"<h3 style='text-align: center; font-weight: 400; margin-bottom: 40px;'>Hôm nay chúng ta nấu gì nhỉ?</h3>", unsafe_allow_html=True)
     
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
-    def quick_action_card(col, icon, title, subtitle, target_url):
-        with col:
-            st.markdown(f"""<a href="{target_url}" target="_self" style="display: block;"><div class="glass-card-btn"><div class="glass-card-icon">{icon}</div><div class="glass-card-title">{title}</div><div class="glass-card-subtitle">{subtitle}</div></div></a>""", unsafe_allow_html=True)
-            
-    quick_action_card(col_q1, "📸", "Phân tích món ăn", "Tải ảnh lên để AI nhận diện", "Dau_Bep_AI")
-    quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì", "Tu_Lanh")
-    quick_action_card(col_q3, "🌍", "Cộng đồng ẩm thực", "Khám phá công thức từ mọi người", "Dien_Dan")
+    
+    with col_q1:
+        if st.button("📸 Phân tích món ăn", use_container_width=True):
+            st.switch_page("pages/1_🍳_Dau_Bep_AI.py")
+        st.markdown("<p style='text-align:center; color:#64748b; font-size:0.85em; margin-top:-10px;'>Tải ảnh lên để AI nhận diện</p>", unsafe_allow_html=True)
+
+    with col_q2:
+        if st.button("❄️ Kiểm tra tủ lạnh", use_container_width=True):
+            st.switch_page("pages/2_❄️_Tu_Lanh.py")
+        st.markdown("<p style='text-align:center; color:#64748b; font-size:0.85em; margin-top:-10px;'>Xem bạn đang còn nguyên liệu gì</p>", unsafe_allow_html=True)
+
+    with col_q3:
+        if st.button("🌍 Cộng đồng ẩm thực", use_container_width=True):
+            st.switch_page("pages/3_🌍_Dien_Dan.py")
+        st.markdown("<p style='text-align:center; color:#64748b; font-size:0.85em; margin-top:-10px;'>Khám phá công thức từ mọi người</p>", unsafe_allow_html=True)
+        
     st.write("<br>", unsafe_allow_html=True)
     
     chat_container = st.container(height=350)
