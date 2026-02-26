@@ -11,25 +11,20 @@ if "auth_view" not in st.session_state: st.session_state.auth_view = "home"
 if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
 
 # ==========================================
-# 🎨 CSS CHUẨN VENICE (ĐÃ FIX LỖI FONT ICON)
+# 🎨 CSS CHUẨN VENICE
 # ==========================================
 st.markdown("""
     <style>
-    /* Chỉ áp dụng Font Inter cho văn bản, không ép lên Icon của Streamlit */
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap');
     
     body, p, h1, h2, h3, h4, h5, h6, span, div, input, textarea {
         font-family: 'Inter', sans-serif;
     }
 
-    /* Nền tối sâu và sang trọng */
     .stApp { background-color: #0f1115; color: #f8fafc; }
     header {visibility: hidden;}
-    
-    /* Ẩn Menu xấu xí mặc định */
     [data-testid="stSidebarNav"] { display: none !important; }
 
-    /* Thiết kế Sidebar */
     [data-testid="stSidebar"] { background-color: #16181d; border-right: 1px solid #272a30; }
     
     .sidebar-logo { 
@@ -41,13 +36,11 @@ st.markdown("""
         font-style: italic;
     }
 
-    /* Khung Chat */
     .stChatInput { background-color: transparent !important; padding-bottom: 20px; }
     .stChatInputContainer { background-color: #1e2026 !important; border: 1px solid #333842 !important; border-radius: 16px !important; }
     .stChatInputContainer:focus-within { border-color: #f97316 !important; }
     .stChatInputContainer textarea { color: #f8fafc !important; }
 
-    /* Thẻ tính năng (Glass Card) */
     .glass-card-btn {
         background: #16181d;
         border: 1px solid #272a30;
@@ -67,12 +60,11 @@ st.markdown("""
     .glass-card-title { font-weight: 600; font-size: 1.1rem; color: #f8fafc; }
     .glass-card-subtitle { color:#64748b; font-size:0.85em; margin-top:8px; }
 
-    /* Auth Box - Form đăng nhập */
     .auth-box { background: rgba(22, 24, 29, 0.9); border: 1px solid #333842; border-radius: 20px; padding: 40px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.5); }
     
-    /* Tuỳ chỉnh nút bấm hệ thống */
-    .stButton>button { border-radius: 8px; font-weight: 600; transition: all 0.2s; }
-    .stButton>button:hover { border-color: #f97316 !important; color: #f97316 !important; }
+    /* Tuỳ chỉnh nút bấm hệ thống và nút Link (SSO) */
+    .stButton>button, .stLinkButton>a>button { border-radius: 8px; font-weight: 600; transition: all 0.2s; }
+    .stButton>button:hover, .stLinkButton>a>button:hover { border-color: #f97316 !important; color: #f97316 !important; }
     </style>
 """, unsafe_allow_html=True)
 
@@ -80,15 +72,13 @@ st.markdown("""
 # 🚀 XỬ LÝ ĐĂNG NHẬP ĐA NỀN TẢNG (SSO)
 # ==========================================
 query_params = st.query_params
-# Chỉ chạy khi có 'code' VÀ có 'state' (để phân biệt Discord hay Github)
 if "code" in query_params and "state" in query_params:
     code = query_params["code"]
     state = query_params["state"]
-    st.query_params.clear() # Dọn sạch thanh địa chỉ cho đẹp
+    st.query_params.clear() 
     
     username = None
     
-    # 1. Nếu là GITHUB
     if state == "github":
         try:
             token_url = "https://github.com/login/oauth/access_token"
@@ -100,7 +90,6 @@ if "code" in query_params and "state" in query_params:
                     username = f"{user_res.json().get('login')} (GitHub)"
         except: pass
 
-    # 2. Nếu là DISCORD
     elif state == "discord":
         try:
             token_url = "https://discord.com/api/oauth2/token"
@@ -109,7 +98,7 @@ if "code" in query_params and "state" in query_params:
                 "client_secret": st.secrets["DISCORD_CLIENT_SECRET"],
                 "grant_type": "authorization_code",
                 "code": code,
-                "redirect_uri": "https://gordon-rox.streamlit.app/" # PHẢI GIỐNG 100% TRONG DISCORD DEVELOPER
+                "redirect_uri": "https://gordon-rox.streamlit.app/" # PHẢI GIỐNG HỆT TRÊN DISCORD PORTAL
             }
             headers = {"Content-Type": "application/x-www-form-urlencoded"}
             res = requests.post(token_url, data=data, headers=headers)
@@ -120,7 +109,6 @@ if "code" in query_params and "state" in query_params:
                     username = f"{user_res.json().get('username')} (Discord)"
         except: pass
 
-    # 3. Đăng nhập thành công (cho cả Github và Discord)
     if username:
         users = load_db(USER_DB)
         if username not in users:
@@ -138,16 +126,13 @@ if "code" in query_params and "state" in query_params:
 with st.sidebar:
     st.markdown("<div class='sidebar-logo'>Gordon Rox</div>", unsafe_allow_html=True)
     
-    # Menu Links
     st.page_link("app.py", label="Trang chủ", icon="🏠")
     st.page_link("pages/1_🍳_Dau_Bep_AI.py", label="Phân tích món ăn", icon="🍳")
     st.page_link("pages/2_❄️_Tu_Lanh.py", label="Quản lý Tủ lạnh", icon="❄️")
     st.page_link("pages/3_🌍_Dien_Dan.py", label="Mạng xã hội", icon="🌍")
     
-    # Khoảng trống đẩy Profile xuống dưới
     st.markdown("<div style='flex-grow: 1; min-height: 45vh;'></div>", unsafe_allow_html=True)
     
-    # User Profile & Auth
     with st.container(border=True):
         if st.session_state.logged_in:
             st.markdown(f"<div style='font-weight: 600; font-size:1.1em; margin-bottom:10px;'>👤 {st.session_state.username}</div>", unsafe_allow_html=True)
@@ -218,32 +203,27 @@ if st.session_state.auth_view == "home":
                     st.markdown(res.text)
                     st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
 
-# --- TRANG ĐĂNG NHẬP (GIAO DIỆN MỚI CHO GITHUB & DISCORD) ---
+# --- TRANG ĐĂNG NHẬP (ĐÃ FIX LỖI NÚT SSO) ---
 elif st.session_state.auth_view == "login":
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         st.markdown("<div class='auth-box'><h2 style='margin-bottom:20px;'>👋 Đăng nhập hệ thống</h2>", unsafe_allow_html=True)
         
-        # --- KHU VỰC NÚT BẤM SSO ---
-        st.markdown("<div style='display:flex; gap:10px; margin-bottom:15px;'>", unsafe_allow_html=True)
-        
-        # Nút GitHub
-        try:
-            gh_id = st.secrets["GITHUB_CLIENT_ID"]
-            # Lưu ý có &state=github ở cuối link
-            gh_url = f"https://github.com/login/oauth/authorize?client_id={gh_id}&scope=read:user&state=github"
-            st.markdown(f"<a href='{gh_url}' target='_self' style='flex:1; text-decoration:none;'><button style='width:100%; padding:10px; border-radius:8px; border:none; background:#24292e; color:white; font-weight:bold; cursor:pointer; font-family: Inter, sans-serif;'>🐙 GitHub</button></a>", unsafe_allow_html=True)
-        except KeyError: pass
+        # --- KHU VỰC NÚT BẤM SSO CHÍNH CHỦ CỦA STREAMLIT ---
+        col_gh, col_dc = st.columns(2)
+        with col_gh:
+            try:
+                gh_id = st.secrets["GITHUB_CLIENT_ID"]
+                gh_url = f"https://github.com/login/oauth/authorize?client_id={gh_id}&scope=read:user&state=github"
+                st.link_button("🐙 GitHub", url=gh_url, use_container_width=True)
+            except KeyError: pass
 
-        # Nút Discord
-        try:
-            dc_id = st.secrets["DISCORD_CLIENT_ID"]
-            # Lưu ý có &state=discord ở cuối link
-            dc_url = f"https://discord.com/api/oauth2/authorize?client_id={dc_id}&redirect_uri=https://gordon-rox.streamlit.app/&response_type=code&scope=identify&state=discord"
-            st.markdown(f"<a href='{dc_url}' target='_blank' style='flex:1; text-decoration:none;'><button style='width:100%; padding:10px; border-radius:8px; border:none; background:#5865F2; color:white; font-weight:bold; cursor:pointer; font-family: Inter, sans-serif;'>🎮 Discord</button></a>", unsafe_allow_html=True)
-        except KeyError: pass
-        
-        st.markdown("</div>", unsafe_allow_html=True)
+        with col_dc:
+            try:
+                dc_id = st.secrets["DISCORD_CLIENT_ID"]
+                dc_url = f"https://discord.com/api/oauth2/authorize?client_id={dc_id}&redirect_uri=https://gordon-rox.streamlit.app/&response_type=code&scope=identify&state=discord"
+                st.link_button("🎮 Discord", url=dc_url, use_container_width=True)
+            except KeyError: pass
         # --- KẾT THÚC KHU VỰC SSO ---
 
         st.markdown("<div style='margin: 15px 0; color: #64748b; font-size: 0.8em;'>— HOẶC SỬ DỤNG TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
@@ -294,4 +274,3 @@ elif st.session_state.auth_view == "signup":
         with c2:
              if st.button("← Quay lại Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
         st.markdown("</div>", unsafe_allow_html=True)
-
