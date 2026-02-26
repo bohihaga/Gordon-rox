@@ -5,7 +5,7 @@ from PIL import Image
 # 1. BẮT BUỘC ĐỂ ĐẦU TIÊN
 st.set_page_config(page_title="Đầu Bếp VIP", page_icon="🍳", layout="wide", initial_sidebar_state="expanded")
 
-# 2. CSS CHUẨN VENICE (Copy từ app.py sang)
+# 2. CSS CHUẨN VENICE
 st.markdown("""
     <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap');
@@ -44,7 +44,7 @@ with st.sidebar:
                 st.session_state.auth_view = "login"
                 st.switch_page("app.py")
 
-# 4. KIỂM TRA ĐĂNG NHẬP (Giao diện đẹp thay vì cảnh báo vàng)
+# 4. KIỂM TRA ĐĂNG NHẬP
 if not st.session_state.get("logged_in"):
     st.markdown("<h2 style='text-align:center; color:#f97316; margin-top:15vh;'>🔒 TÍNH NĂNG V.I.P</h2>", unsafe_allow_html=True)
     st.markdown("<p style='text-align:center; color:#94a3b8;'>Bạn cần Đăng Nhập để sử dụng AI phân tích hình ảnh.</p>", unsafe_allow_html=True)
@@ -90,9 +90,10 @@ for msg in st.session_state.vip_chat:
 chat_text = st.chat_input("Nhập câu hỏi chi tiết về món ăn...")
 if chat_text:
     st.session_state.vip_chat.append({"role": "user", "content": chat_text})
-    with st.chat_message("user", avatar="🧑‍🍳"): st.markdown(chat_text)
+    with st.chat_message("user", avatar="🧑‍🍳"): 
+        st.markdown(chat_text)
     with st.chat_message("assistant", avatar="✨"):
         with st.spinner("Đang gõ..."):
             res = st.session_state.full_ai_session.send_message(chat_text)
             st.markdown(res.text)
-            st.session_state.vip_chat.append({"role": "assistant", "content": res.text})text})
+            st.session_state.vip_chat.append({"role": "assistant", "content": res.text})
