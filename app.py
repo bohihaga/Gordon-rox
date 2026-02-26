@@ -15,7 +15,6 @@ if "theme_mode" not in st.session_state: st.session_state.theme_mode = "Dark"
 # ==========================================
 # 🎨 HỆ THỐNG GIAO DIỆN CHUẨN MỰC
 # ==========================================
-# ĐÃ SỬA LỖI ĐẢO NGƯỢC: Chọn Light ra Light, chọn Dark ra Dark
 if st.session_state.theme_mode == "Light":
     bg_color, text_color, card_bg, sidebar_bg, border_color = "#ffffff", "#1e293b", "#f8fafc", "#f1f5f9", "#e2e8f0"
     input_bg, input_border = "#ffffff", "#cbd5e1"
@@ -86,7 +85,7 @@ st.markdown(f"""
         background-color: {card_bg} !important; border-radius: 16px !important; border: 1px solid {border_color} !important; padding: 10px;
     }}
 
-    /* Tẩy sạch Manage App & Header - CÀNG MẠNH TAY CÀNG TỐT */
+    /* Tẩy sạch Manage App & Header */
     .viewerBadge_container, .viewerBadge_link, [data-testid="stAppDeployButton"], [data-testid="stToolbar"], footer, [data-testid="stFooter"], [class*="viewerBadge"] {{ 
         display: none !important; 
     }}
@@ -203,7 +202,6 @@ if st.session_state.auth_view == "home":
 # 🖥️ NỘI DUNG CHÍNH (TRANG CHỦ)
 # ==========================================
 if st.session_state.auth_view == "home":
-    # CSS CỦA NÚT Ở TRANG CHỦ
     st.markdown(f"""
         <style>
         div[data-testid="column"] .stButton > button {{
@@ -285,3 +283,55 @@ elif st.session_state.auth_view == "login":
             if st.form_submit_button("🚀 Vào Bếp Ngay", use_container_width=True):
                 users = load_db(USER_DB)
                 if user_in in users and users[user_in]["password"] == hash_pass(pass_in):
+                    st.session_state.logged_in = True
+                    st.session_state.username = user_in
+                    st.session_state.user_data = users[user_in]
+                    st.session_state.auth_view = "home"
+                    st.rerun()
+                else: st.error("Thông tin không chính xác!")
+        
+        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        with c1: 
+            if st.button("✨ Tạo tài khoản mới", use_container_width=True): st.session_state.auth_view = "signup"; st.rerun()
+        with c2:
+            if st.button("← Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
+            
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================
+# 🔥 GIAO DIỆN ĐĂNG KÝ
+# ============================================================
+elif st.session_state.auth_view == "signup":
+    col1, col2, col3 = st.columns([1, 1.6, 1])
+    with col2:
+        st.markdown("""<div class='unified-auth-card'>
+            <h2 style='text-align:center; margin-bottom:10px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2>
+            <p style='text-align:center; margin-bottom:30px;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>
+        """, unsafe_allow_html=True)
+        
+        with st.form("signup_form"):
+            new_user = st.text_input("Tài khoản mong muốn", placeholder="Ví dụ: chef_alex")
+            new_pass = st.text_input("Mật khẩu", type="password", placeholder="Tối thiểu 4 ký tự")
+            st.write("")
+            if st.form_submit_button("✨ Đăng Ký Ngay", use_container_width=True):
+                users = load_db(USER_DB)
+                if new_user in users: st.error("Tên này đã có người dùng!")
+                elif len(new_pass) < 4: st.error("Mật khẩu hơi ngắn, thêm chút nữa đi!")
+                else:
+                    users[new_user] = {"password": hash_pass(new_pass), "fridge": []}
+                    save_db(USER_DB, users)
+                    st.success("Tuyệt vời! Đang chuyển sang đăng nhập...")
+                    st.session_state.auth_view = "login"
+                    st.rerun()
+        
+        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        with c1:
+             if st.button("← Đã có tài khoản", use_container_width=True): st.session_state.auth_view = "login"; st.rerun()
+        with c2:
+             if st.button("🏠 Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
