@@ -15,15 +15,15 @@ if "theme_mode" not in st.session_state: st.session_state.theme_mode = "Dark"
 # ==========================================
 # 🎨 HỆ THỐNG GIAO DIỆN CHUẨN MỰC
 # ==========================================
-# Đã đổi btn_bg thành màu Đen đặc thay vì rgba để chống lộ nền trắng
-if st.session_state.theme_mode == "Dark":
-    bg_color, text_color, card_bg, sidebar_bg, border_color = "#0f1115", "#f8fafc", "#1e2026", "#16181d", "#272a30"
-    input_bg, input_border = "#16181d", "#333842"
-    btn_bg = "#1e2026" 
-else:
+# ĐÃ SỬA LỖI ĐẢO NGƯỢC: Chọn Light ra Light, chọn Dark ra Dark
+if st.session_state.theme_mode == "Light":
     bg_color, text_color, card_bg, sidebar_bg, border_color = "#ffffff", "#1e293b", "#f8fafc", "#f1f5f9", "#e2e8f0"
     input_bg, input_border = "#ffffff", "#cbd5e1"
     btn_bg = "#f1f5f9"
+else:
+    bg_color, text_color, card_bg, sidebar_bg, border_color = "#0f1115", "#f8fafc", "#1e2026", "#16181d", "#272a30"
+    input_bg, input_border = "#16181d", "#333842"
+    btn_bg = "#1e2026" 
 
 st.markdown(f"""
     <style>
@@ -32,11 +32,11 @@ st.markdown(f"""
     body, p, h1, h2, h3, h4, h5, h6, div, input, textarea {{ font-family: 'Inter', sans-serif !important; }}
 
     /* Ép màu nền và màu chữ TỔNG THỂ */
-    .stApp {{ background-color: {bg_color}; }}
+    .stApp {{ background-color: {bg_color} !important; }}
     div, p, span, a, label, h1, h2, h3, h4, h5, h6, li {{ color: {text_color} !important; }}
     a {{ text-decoration: none !important; }}
     
-    /* 🔥 TRỊ LỖI Ô TEXT INPUT TRẮNG TOÁT 🔥 */
+    /* 🔥 TRỊ LỖI Ô TEXT INPUT 🔥 */
     [data-baseweb="input"], [data-baseweb="input"] > div {{
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
@@ -44,27 +44,25 @@ st.markdown(f"""
     input[type="text"], input[type="password"] {{
         color: {text_color} !important;
         background-color: {input_bg} !important;
-        -webkit-text-fill-color: {text_color} !important; /* Ép chữ gõ vào không bị tàng hình */
+        -webkit-text-fill-color: {text_color} !important;
     }}
 
-    /* 🔥 TRỊ LỖI NÚT BẤM SSO (LINK BUTTON) TRẮNG TOÁT 🔥 */
-    [data-testid="stButton"] button, 
-    [data-testid="stLinkButton"] button,
-    button[kind="secondary"] {{ 
-        border-radius: 10px !important; 
-        font-weight: 600 !important; 
-        transition: all 0.2s !important; 
-        border: 1px solid {border_color} !important;
+    /* 🔥 TRỊ LỖI NÚT SSO (GITHUB/DISCORD/FB) BỊ Ô TRẮNG 🔥 */
+    a[data-testid="stLinkButton"], a[data-testid="stLinkButton"] button, [data-testid="stButton"] button {{
         background-color: {btn_bg} !important; 
         color: {text_color} !important;
+        border: 1px solid {border_color} !important;
+        border-radius: 10px !important; 
+        font-weight: 600 !important;
+        transition: all 0.2s !important; 
     }}
-    [data-testid="stButton"] button:hover, 
-    [data-testid="stLinkButton"] button:hover {{ 
+    
+    a[data-testid="stLinkButton"]:hover, a[data-testid="stLinkButton"] button:hover, [data-testid="stButton"] button:hover {{ 
         border-color: #f97316 !important; 
         color: #f97316 !important; 
     }}
 
-    /* 🔥 NÚT VÀO BẾP NGAY (FORM SUBMIT) ÉP MÀU CAM 🔥 */
+    /* 🔥 NÚT VÀO BẾP NGAY ÉP MÀU CAM 🔥 */
     [data-testid="stFormSubmitButton"] button {{ 
         background-color: #f97316 !important; 
         color: white !important; 
@@ -78,27 +76,18 @@ st.markdown(f"""
         color: white !important;
     }}
 
-    /* Xử lý mảng trắng ở đáy và Chat Input */
-    [data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlock"] {{
-        background-color: {bg_color} !important; 
-    }}
-    .stChatInputContainer {{ 
-        background-color: {input_bg} !important; 
-        border: 1px solid {input_border} !important; 
-        border-radius: 16px !important; 
-    }}
+    /* Xử lý Chat Input */
+    [data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlock"] {{ background-color: {bg_color} !important; }}
+    .stChatInputContainer {{ background-color: {input_bg} !important; border: 1px solid {input_border} !important; border-radius: 16px !important; }}
     .stChatInputContainer:focus-within {{ border-color: #f97316 !important; }}
     
     /* Làm sáng hộp Chatbox */
     [data-testid="stVerticalBlockBorderWrapper"] {{
-        background-color: {card_bg} !important;
-        border-radius: 16px !important;
-        border: 1px solid {border_color} !important;
-        padding: 10px;
+        background-color: {card_bg} !important; border-radius: 16px !important; border: 1px solid {border_color} !important; padding: 10px;
     }}
 
-    /* Tẩy sạch Manage App & Header */
-    .viewerBadge_container, .viewerBadge_link, [data-testid="stAppDeployButton"], [data-testid="stToolbar"], footer, [data-testid="stFooter"] {{ 
+    /* Tẩy sạch Manage App & Header - CÀNG MẠNH TAY CÀNG TỐT */
+    .viewerBadge_container, .viewerBadge_link, [data-testid="stAppDeployButton"], [data-testid="stToolbar"], footer, [data-testid="stFooter"], [class*="viewerBadge"] {{ 
         display: none !important; 
     }}
     #MainMenu {{ visibility: hidden !important; }}
@@ -106,19 +95,12 @@ st.markdown(f"""
     
     /* Thiết kế Sidebar */
     [data-testid="stSidebarNav"] {{ display: none !important; }}
-    [data-testid="stSidebar"] {{ 
-        background-color: {sidebar_bg} !important; 
-        border-right: 1px solid {border_color} !important; 
-    }}
-    .sidebar-logo {{ 
-        font-family: 'Playfair Display', serif !important; 
-        font-size: 2.2rem; color: {text_color} !important; margin-bottom: 25px; padding-left: 10px; font-style: italic;
-    }}
+    [data-testid="stSidebar"] {{ background-color: {sidebar_bg} !important; border-right: 1px solid {border_color} !important; }}
+    .sidebar-logo {{ font-family: 'Playfair Display', serif !important; font-size: 2.2rem; color: {text_color} !important; margin-bottom: 25px; padding-left: 10px; font-style: italic; }}
     
     /* Form Đăng Nhập Kính Mờ */
     .unified-auth-card {{
-        background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px;
-        box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+        background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
     }}
     [data-testid="stForm"] {{ border: none !important; padding: 0 !important; background: transparent !important; }}
     </style>
@@ -225,21 +207,12 @@ if st.session_state.auth_view == "home":
     st.markdown(f"""
         <style>
         div[data-testid="column"] .stButton > button {{
-            height: 90px !important;
-            border-radius: 16px !important;
-            font-size: 1.2rem !important;
-            background-color: {sidebar_bg} !important;
-            border: 1px solid {border_color} !important;
-            display: flex !important;
-            align-items: center !important;
-            justify-content: center !important;
+            height: 90px !important; border-radius: 16px !important; font-size: 1.2rem !important;
+            background-color: {sidebar_bg} !important; border: 1px solid {border_color} !important;
+            display: flex !important; align-items: center !important; justify-content: center !important;
             color: {text_color} !important;
         }}
-        div[data-testid="column"] .stButton > button:hover {{
-            border-color: #f97316 !important;
-            transform: translateY(-3px) !important;
-            color: #f97316 !important;
-        }}
+        div[data-testid="column"] .stButton > button:hover {{ border-color: #f97316 !important; transform: translateY(-3px) !important; color: #f97316 !important; }}
         </style>
     """, unsafe_allow_html=True)
 
@@ -250,29 +223,24 @@ if st.session_state.auth_view == "home":
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     
     with col_q1:
-        if st.button("📸 Phân tích món ăn", use_container_width=True):
-            st.switch_page("pages/1_🍳_Dau_Bep_AI.py")
+        if st.button("📸 Phân tích món ăn", use_container_width=True): st.switch_page("pages/1_🍳_Dau_Bep_AI.py")
         st.markdown("<p style='text-align:center; color:#64748b; font-size:0.85em; margin-top:-10px;'>Tải ảnh lên để AI nhận diện</p>", unsafe_allow_html=True)
 
     with col_q2:
-        if st.button("❄️ Kiểm tra tủ lạnh", use_container_width=True):
-            st.switch_page("pages/2_❄️_Tu_Lanh.py")
+        if st.button("❄️ Kiểm tra tủ lạnh", use_container_width=True): st.switch_page("pages/2_❄️_Tu_Lanh.py")
         st.markdown("<p style='text-align:center; color:#64748b; font-size:0.85em; margin-top:-10px;'>Xem bạn đang còn nguyên liệu gì</p>", unsafe_allow_html=True)
 
     with col_q3:
-        if st.button("🌍 Cộng đồng ẩm thực", use_container_width=True):
-            st.switch_page("pages/3_🌍_Dien_Dan.py")
+        if st.button("🌍 Cộng đồng ẩm thực", use_container_width=True): st.switch_page("pages/3_🌍_Dien_Dan.py")
         st.markdown("<p style='text-align:center; color:#64748b; font-size:0.85em; margin-top:-10px;'>Khám phá công thức từ mọi người</p>", unsafe_allow_html=True)
         
     st.write("<br>", unsafe_allow_html=True)
     
     chat_container = st.container(height=350)
     with chat_container:
-        if not st.session_state.preview_chat: 
-            st.markdown("<div style='text-align: center; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
+        if not st.session_state.preview_chat: st.markdown("<div style='text-align: center; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
         for msg in st.session_state.preview_chat: 
-            with st.chat_message(msg["role"]): 
-                st.markdown(msg["content"])
+            with st.chat_message(msg["role"]): st.markdown(msg["content"])
                 
     prompt = st.chat_input("Hỏi nhanh Gordon Rox (VD: Gợi ý bữa tối)...")
     if prompt:
@@ -317,55 +285,3 @@ elif st.session_state.auth_view == "login":
             if st.form_submit_button("🚀 Vào Bếp Ngay", use_container_width=True):
                 users = load_db(USER_DB)
                 if user_in in users and users[user_in]["password"] == hash_pass(pass_in):
-                    st.session_state.logged_in = True
-                    st.session_state.username = user_in
-                    st.session_state.user_data = users[user_in]
-                    st.session_state.auth_view = "home"
-                    st.rerun()
-                else: st.error("Thông tin không chính xác!")
-        
-        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
-        
-        c1, c2 = st.columns(2)
-        with c1: 
-            if st.button("✨ Tạo tài khoản mới", use_container_width=True): st.session_state.auth_view = "signup"; st.rerun()
-        with c2:
-            if st.button("← Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
-            
-        st.markdown("</div>", unsafe_allow_html=True)
-
-# ============================================================
-# 🔥 GIAO DIỆN ĐĂNG KÝ
-# ============================================================
-elif st.session_state.auth_view == "signup":
-    col1, col2, col3 = st.columns([1, 1.6, 1])
-    with col2:
-        st.markdown("""<div class='unified-auth-card'>
-            <h2 style='text-align:center; margin-bottom:10px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2>
-            <p style='text-align:center; margin-bottom:30px;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>
-        """, unsafe_allow_html=True)
-        
-        with st.form("signup_form"):
-            new_user = st.text_input("Tài khoản mong muốn", placeholder="Ví dụ: chef_alex")
-            new_pass = st.text_input("Mật khẩu", type="password", placeholder="Tối thiểu 4 ký tự")
-            st.write("")
-            if st.form_submit_button("✨ Đăng Ký Ngay", use_container_width=True):
-                users = load_db(USER_DB)
-                if new_user in users: st.error("Tên này đã có người dùng!")
-                elif len(new_pass) < 4: st.error("Mật khẩu hơi ngắn, thêm chút nữa đi!")
-                else:
-                    users[new_user] = {"password": hash_pass(new_pass), "fridge": []}
-                    save_db(USER_DB, users)
-                    st.success("Tuyệt vời! Đang chuyển sang đăng nhập...")
-                    st.session_state.auth_view = "login"
-                    st.rerun()
-        
-        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
-        
-        c1, c2 = st.columns(2)
-        with c1:
-             if st.button("← Đã có tài khoản", use_container_width=True): st.session_state.auth_view = "login"; st.rerun()
-        with c2:
-             if st.button("🏠 Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
-
-        st.markdown("</div>", unsafe_allow_html=True)
