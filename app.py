@@ -35,7 +35,20 @@ st.markdown(f"""
     div, p, span, a, label, h1, h2, h3, h4, h5, h6, li {{ color: {text_color} !important; }}
     a {{ text-decoration: none !important; }}
     
-    /* 🔥 TRỊ LỖI Ô TEXT INPUT 🔥 */
+    /* 🔥 CỨU HỘ NÚT MỞ MENU (BỊ TÀNG HÌNH GÓC TRÁI TRÊN) 🔥 */
+    [data-testid="collapsedControl"] {{
+        display: flex !important;
+        color: {text_color} !important;
+        background-color: {sidebar_bg} !important;
+        border-radius: 8px !important;
+        border: 1px solid {border_color} !important;
+        z-index: 999999 !important;
+    }}
+    [data-testid="collapsedControl"] svg {{
+        fill: #f97316 !important; /* Ép nút mở menu thành màu CAM cho dễ thấy */
+    }}
+
+    /* Trị lỗi ô Text Input */
     [data-baseweb="input"], [data-baseweb="input"] > div {{
         background-color: {input_bg} !important;
         border-color: {input_border} !important;
@@ -46,7 +59,7 @@ st.markdown(f"""
         -webkit-text-fill-color: {text_color} !important;
     }}
 
-    /* 🔥 TRỊ LỖI NÚT SSO (GITHUB/DISCORD/FB) BỊ Ô TRẮNG 🔥 */
+    /* Trị lỗi nút SSO */
     a[data-testid="stLinkButton"], a[data-testid="stLinkButton"] button, [data-testid="stButton"] button {{
         background-color: {btn_bg} !important; 
         color: {text_color} !important;
@@ -55,41 +68,30 @@ st.markdown(f"""
         font-weight: 600 !important;
         transition: all 0.2s !important; 
     }}
-    
     a[data-testid="stLinkButton"]:hover, a[data-testid="stLinkButton"] button:hover, [data-testid="stButton"] button:hover {{ 
         border-color: #f97316 !important; 
         color: #f97316 !important; 
     }}
 
-    /* 🔥 NÚT VÀO BẾP NGAY ÉP MÀU CAM 🔥 */
+    /* Nút Vào Bếp Ngay màu cam */
     [data-testid="stFormSubmitButton"] button {{ 
-        background-color: #f97316 !important; 
-        color: white !important; 
-        border: none !important; 
-        border-radius: 10px !important;
-        font-weight: 600 !important;
+        background-color: #f97316 !important; color: white !important; border: none !important; border-radius: 10px !important; font-weight: 600 !important;
     }}
     [data-testid="stFormSubmitButton"] button:hover {{ 
-        background-color: #ea580c !important; 
-        box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3) !important; 
-        color: white !important;
+        background-color: #ea580c !important; box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3) !important; color: white !important;
     }}
 
-    /* Xử lý Chat Input */
+    /* Xử lý Chat Input và mảng đáy */
     [data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlock"] {{ background-color: {bg_color} !important; }}
     .stChatInputContainer {{ background-color: {input_bg} !important; border: 1px solid {input_border} !important; border-radius: 16px !important; }}
     .stChatInputContainer:focus-within {{ border-color: #f97316 !important; }}
-    
-    /* Làm sáng hộp Chatbox */
-    [data-testid="stVerticalBlockBorderWrapper"] {{
-        background-color: {card_bg} !important; border-radius: 16px !important; border: 1px solid {border_color} !important; padding: 10px;
-    }}
+    [data-testid="stVerticalBlockBorderWrapper"] {{ background-color: {card_bg} !important; border-radius: 16px !important; border: 1px solid {border_color} !important; padding: 10px; }}
 
-    /* Tẩy sạch Manage App & Header */
-    .viewerBadge_container, .viewerBadge_link, [data-testid="stAppDeployButton"], [data-testid="stToolbar"], footer, [data-testid="stFooter"], [class*="viewerBadge"] {{ 
-        display: none !important; 
+    /* 🔥 TẨY SẠCH MANAGE APP (TRIỆT ĐỂ 100%) 🔥 */
+    footer, [data-testid="stFooter"], .viewerBadge_container, .viewerBadge_link, [class^="viewerBadge"] {{ 
+        display: none !important; opacity: 0 !important; visibility: hidden !important;
     }}
-    #MainMenu {{ visibility: hidden !important; }}
+    #MainMenu, [data-testid="stToolbar"] {{ display: none !important; }}
     [data-testid="stHeader"] {{ background-color: transparent !important; }}
     
     /* Thiết kế Sidebar */
@@ -98,9 +100,7 @@ st.markdown(f"""
     .sidebar-logo {{ font-family: 'Playfair Display', serif !important; font-size: 2.2rem; color: {text_color} !important; margin-bottom: 25px; padding-left: 10px; font-style: italic; }}
     
     /* Form Đăng Nhập Kính Mờ */
-    .unified-auth-card {{
-        background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2);
-    }}
+    .unified-auth-card {{ background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }}
     [data-testid="stForm"] {{ border: none !important; padding: 0 !important; background: transparent !important; }}
     </style>
 """, unsafe_allow_html=True)
@@ -202,11 +202,12 @@ if st.session_state.auth_view == "home":
 # 🖥️ NỘI DUNG CHÍNH (TRANG CHỦ)
 # ==========================================
 if st.session_state.auth_view == "home":
+    # Làm đẹp 3 nút tính năng chính
     st.markdown(f"""
         <style>
         div[data-testid="column"] .stButton > button {{
             height: 90px !important; border-radius: 16px !important; font-size: 1.2rem !important;
-            background-color: {sidebar_bg} !important; border: 1px solid {border_color} !important;
+            background-color: {card_bg} !important; border: 1px solid {border_color} !important;
             display: flex !important; align-items: center !important; justify-content: center !important;
             color: {text_color} !important;
         }}
