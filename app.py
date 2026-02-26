@@ -45,19 +45,12 @@ st.markdown("""
         border-radius: 12px;
         padding: 20px;
         text-align: center;
-        cursor: pointer;
         transition: all 0.3s ease;
-        height: 100%;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
-    }
-    .glass-card-btn:hover {
-        background: rgba(255, 255, 255, 0.1);
-        border-color: rgba(249, 115, 22, 0.5);
-        transform: translateY(-3px);
-        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+        margin-bottom: 10px;
     }
     .glass-card-icon { font-size: 2.5rem; margin-bottom: 10px; }
     .glass-card-title { font-weight: 600; font-size: 1.1rem; }
@@ -82,7 +75,6 @@ st.markdown("""
 # ==========================================
 # 🚀 XỬ LÝ ĐĂNG NHẬP GITHUB NGẦM
 # ==========================================
-# (Giữ nguyên logic cũ)
 query_params = st.query_params
 if "code" in query_params:
     code = query_params["code"]
@@ -113,19 +105,15 @@ if "code" in query_params:
 # ==========================================
 with st.sidebar:
     st.markdown("<div class='sidebar-logo'>👨‍🍳 Gordon Rox AI</div>", unsafe_allow_html=True)
-    # Menu điều hướng sẽ tự động xuất hiện ở đây nhờ Streamlit quản lý các trang trong thư mục 'pages/'
 
 # ==========================================
 # 🔝 THANH ĐIỀU HƯỚNG TRÊN CÙNG (TOP NAV)
 # ==========================================
-# Sử dụng columns để tạo layout cho thanh trên cùng
 col_space, col_new_chat, col_user = st.columns([6, 1.5, 1.5], gap="small")
 
 with col_new_chat:
-    # Nút "New Chat" giống hình mẫu
     st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
     if st.button("✨ Cuộc trò chuyện mới", use_container_width=True):
-        # Xóa lịch sử chat để bắt đầu lại
         st.session_state.preview_chat = []
         st.rerun()
     st.markdown('</div>', unsafe_allow_html=True)
@@ -141,7 +129,6 @@ with col_user:
                 st.rerun()
             st.markdown('</div>', unsafe_allow_html=True)
     else:
-        # Nút đăng nhập/đăng ký cho khách
         st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
         if st.button("Sign In / Up", use_container_width=True):
             st.session_state.auth_view = "login"
@@ -154,15 +141,13 @@ with col_user:
 
 # --- TRANG CHỦ (HOME) ---
 if st.session_state.auth_view == "home":
-    # Lời chào trung tâm
     greeting_name = st.session_state.username if st.session_state.logged_in else "Bạn"
     st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 40px 0 20px;'>Xin chào, {greeting_name}! <br>Hôm nay chúng ta nấu gì nhỉ?</h1>", unsafe_allow_html=True)
 
-    # Các thẻ tác vụ nhanh (Quick Actions)
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     
-    # Helper function để tạo thẻ (vì Streamlit không cho bấm vào div)
-    def quick_action_card(col, icon, title, subtitle):
+    # 🛠️ HÀM TẠO THẺ TÁC VỤ CÓ NÚT BẤM CHUYỂN TRANG
+    def quick_action_card(col, icon, title, subtitle, target_page):
         with col:
             st.markdown(f"""
             <div class="glass-card-btn">
@@ -171,14 +156,19 @@ if st.session_state.auth_view == "home":
                 <div style="color:#94a3b8; font-size:0.9em;">{subtitle}</div>
             </div>
             """, unsafe_allow_html=True)
+            
+            st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+            if st.button(f"🚀 Mở {title}", key=f"btn_{title}", use_container_width=True):
+                st.switch_page(target_page)
+            st.markdown('</div>', unsafe_allow_html=True)
 
-    quick_action_card(col_q1, "📸", "Phân tích món ăn", "Tải ảnh lên để AI nhận diện")
-    quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì")
-    quick_action_card(col_q3, "🌍", "Cộng đồng ẩm thực", "Khám phá công thức từ mọi người")
+    # Đã nối nút bấm vào 3 trang của bạn
+    quick_action_card(col_q1, "📸", "Phân tích món ăn", "Tải ảnh lên để AI nhận diện", "pages/1_🍳_Dau_Bep_AI.py")
+    quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì", "pages/2_❄️_Tu_Lanh.py")
+    quick_action_card(col_q3, "🌍", "Cộng đồng ẩm thực", "Khám phá công thức từ mọi người", "pages/3_🌍_Dien_Dan.py")
 
-    st.write("") # Khoảng trống
+    st.write("---") 
 
-    # Khung Chat dùng thử ở dưới cùng
     chat_container = st.container(height=400)
     with chat_container:
         if not st.session_state.preview_chat:
