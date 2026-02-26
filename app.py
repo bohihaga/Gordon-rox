@@ -3,167 +3,221 @@ import google.generativeai as genai
 import requests
 from utils import init_system, hash_pass, load_db, save_db, USER_DB
 
-# Cấu hình trang (Collapsed sidebar mặc định cho khách)
-st.set_page_config(page_title="Gordon Rox | AI Culinary", page_icon="✨", layout="wide", initial_sidebar_state="collapsed")
+# Cấu hình trang: Sidebar luôn mở để giống Gemini
+st.set_page_config(page_title="Gordon Rox | AI Culinary", page_icon="✨", layout="wide", initial_sidebar_state="expanded")
 init_system()
 
-# Khởi tạo máy trạng thái điều hướng màn hình
-if "auth_view" not in st.session_state:
-    st.session_state.auth_view = "home"
+# Khởi tạo máy trạng thái
+if "auth_view" not in st.session_state: st.session_state.auth_view = "home"
+if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
 
 # ==========================================
-# 🎨 CSS MAGIC - NAVBAR & FORM ĐĂNG NHẬP
+# 🎨 CSS MAGIC - GIAO DIỆN GEMINI DARK MODE
 # ==========================================
 st.markdown("""
     <style>
+    /* Nền tối gradient chủ đạo */
     .stApp { background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); color: #f8fafc; }
     header {visibility: hidden;}
     
-    /* Chữ tiêu đề Navbar */
-    .nav-logo { font-size: 1.8rem; font-weight: 900; background: -webkit-linear-gradient(45deg, #f97316, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; cursor: pointer; }
-    
-    /* Giao diện Glassmorphism */
-    .glass-card { background: rgba(255, 255, 255, 0.03); backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.05); border-radius: 16px; padding: 30px; box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1); }
-    
-    /* Định dạng form đăng nhập trung tâm */
+    /* Sidebar */
+    [data-testid="stSidebar"] {
+        background: rgba(15, 23, 42, 0.6);
+        backdrop-filter: blur(20px);
+        border-right: 1px solid rgba(255,255,255,0.05);
+    }
+    .sidebar-logo { font-size: 1.5rem; font-weight: 900; background: -webkit-linear-gradient(45deg, #f97316, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 20px; }
+
+    /* Top Navigation Bar area */
+    .top-nav-container {
+        display: flex;
+        justify-content: flex-end;
+        align-items: center;
+        padding: 10px 0;
+        margin-bottom: 30px;
+    }
+
+    /* Glassmorphism Cards (Cho các nút tác vụ nhanh) */
+    .glass-card-btn {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+    }
+    .glass-card-btn:hover {
+        background: rgba(255, 255, 255, 0.1);
+        border-color: rgba(249, 115, 22, 0.5);
+        transform: translateY(-3px);
+        box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    }
+    .glass-card-icon { font-size: 2.5rem; margin-bottom: 10px; }
+    .glass-card-title { font-weight: 600; font-size: 1.1rem; }
+
+    /* Các phần tử Auth (Đăng nhập/Đăng ký) */
     .auth-box { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(20px); border: 1px solid #334155; border-radius: 20px; padding: 40px; box-shadow: 0 10px 40px rgba(0,0,0,0.5); text-align: center; }
     
-    /* Nút bấm mặc định */
-    .stButton>button { border-radius: 8px; font-weight: 600; transition: all 0.3s ease; width: 100%; }
-    
-    /* Nút Gradient (Sign Up / Hành động chính) */
-    .btn-primary>div>button { background: linear-gradient(90deg, #f97316, #ec4899); color: white; border: none; }
-    .btn-primary>div>button:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); transform: scale(1.02); }
-    
-    /* Nút Viền (Sign In) */
-    .btn-outline>div>button { background: transparent; color: #f8fafc; border: 1px solid rgba(255,255,255,0.3); }
-    .btn-outline>div>button:hover { border-color: #f97316; color: #f97316; }
+    /* Nút bấm */
+    .stButton>button { border-radius: 8px; font-weight: 600; transition: all 0.3s ease; }
+    /* Nút "New Chat" và các nút chính */
+    .btn-primary>div>button { background: linear-gradient(90deg, #f97316, #ec4899); color: white; border: none; padding: 8px 16px; }
+    .btn-primary>div>button:hover { opacity: 0.9; box-shadow: 0 0 15px rgba(249, 115, 22, 0.4); }
+    /* Nút phụ (Sign In / Đăng xuất) */
+    .btn-outline>div>button { background: transparent; color: #f8fafc; border: 1px solid rgba(255,255,255,0.3); padding: 8px 16px; }
+    .btn-outline>div>button:hover { border-color: #f97316; color: #f97316; background: rgba(255,255,255,0.05); }
+
+    /* Chat Input */
+    .stChatInputContainer { border-radius: 12px; border: 1px solid rgba(255,255,255,0.1) !important; background: rgba(0,0,0,0.3) !important; }
     </style>
 """, unsafe_allow_html=True)
 
 # ==========================================
 # 🚀 XỬ LÝ ĐĂNG NHẬP GITHUB NGẦM
 # ==========================================
+# (Giữ nguyên logic cũ)
 query_params = st.query_params
 if "code" in query_params:
     code = query_params["code"]
     st.query_params.clear()
-    
     token_url = "https://github.com/login/oauth/access_token"
     data = {"client_id": st.secrets["GITHUB_CLIENT_ID"], "client_secret": st.secrets["GITHUB_CLIENT_SECRET"], "code": code}
     headers = {"Accept": "application/json"}
-    res = requests.post(token_url, data=data, headers=headers)
-    
-    if res.status_code == 200 and res.json().get("access_token"):
-        access_token = res.json().get("access_token")
-        user_res = requests.get("https://api.github.com/user", headers={"Authorization": f"token {access_token}"})
-        if user_res.status_code == 200:
-            username = user_res.json().get("login")
-            users = load_db(USER_DB)
-            if username not in users:
-                users[username] = {"password": "github_oauth_user", "fridge": []}
-                save_db(USER_DB, users)
-            st.session_state.logged_in = True
-            st.session_state.username = username
-            st.session_state.user_data = users[username]
-            st.session_state.auth_view = "home" # Trả về trang chủ sau khi đăng nhập
-            st.rerun()
+    try:
+        res = requests.post(token_url, data=data, headers=headers)
+        if res.status_code == 200 and res.json().get("access_token"):
+            access_token = res.json().get("access_token")
+            user_res = requests.get("https://api.github.com/user", headers={"Authorization": f"token {access_token}"})
+            if user_res.status_code == 200:
+                username = user_res.json().get("login")
+                users = load_db(USER_DB)
+                if username not in users:
+                    users[username] = {"password": "github_oauth_user", "fridge": []}
+                    save_db(USER_DB, users)
+                st.session_state.logged_in = True
+                st.session_state.username = username
+                st.session_state.user_data = users[username]
+                st.session_state.auth_view = "home"
+                st.rerun()
+    except: pass
 
 # ==========================================
-# 🗺️ THANH ĐIỀU HƯỚNG TRÊN CÙNG (TOP NAVBAR)
+# 📱 THANH BÊN (SIDEBAR) - Logo & Menu
 # ==========================================
-nav_col1, nav_col2, nav_col3, nav_col4 = st.columns([6, 2, 1, 1], gap="small")
+with st.sidebar:
+    st.markdown("<div class='sidebar-logo'>👨‍🍳 Gordon Rox AI</div>", unsafe_allow_html=True)
+    # Menu điều hướng sẽ tự động xuất hiện ở đây nhờ Streamlit quản lý các trang trong thư mục 'pages/'
 
-with nav_col1:
-    st.markdown("<div class='nav-logo'>👨‍🍳 Gordon Rox AI</div>", unsafe_allow_html=True)
+# ==========================================
+# 🔝 THANH ĐIỀU HƯỚNG TRÊN CÙNG (TOP NAV)
+# ==========================================
+# Sử dụng columns để tạo layout cho thanh trên cùng
+col_space, col_new_chat, col_user = st.columns([6, 1.5, 1.5], gap="small")
 
-if st.session_state.logged_in:
-    with nav_col3:
-        st.write(f"👋 **{st.session_state.username}**")
-    with nav_col4:
+with col_new_chat:
+    # Nút "New Chat" giống hình mẫu
+    st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
+    if st.button("✨ Cuộc trò chuyện mới", use_container_width=True):
+        # Xóa lịch sử chat để bắt đầu lại
+        st.session_state.preview_chat = []
+        st.rerun()
+    st.markdown('</div>', unsafe_allow_html=True)
+
+with col_user:
+    if st.session_state.logged_in:
+        with st.popover(f"👤 {st.session_state.username}"):
+            st.write(f"Xin chào, **{st.session_state.username}**!")
+            st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+            if st.button("Đăng Xuất", use_container_width=True):
+                st.session_state.logged_in = False
+                st.session_state.auth_view = "home"
+                st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        # Nút đăng nhập/đăng ký cho khách
         st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
-        if st.button("Đăng Xuất"):
-            st.session_state.logged_in = False
-            st.session_state.auth_view = "home"
+        if st.button("Sign In / Up", use_container_width=True):
+            st.session_state.auth_view = "login"
             st.rerun()
         st.markdown('</div>', unsafe_allow_html=True)
-else:
-    # Nút điều hướng góc phải cho khách
-    with nav_col3:
-        st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
-        if st.button("Sign In"): st.session_state.auth_view = "login"; st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-    with nav_col4:
-        st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
-        if st.button("Sign Up"): st.session_state.auth_view = "signup"; st.rerun()
-        st.markdown('</div>', unsafe_allow_html=True)
-
-st.markdown("<hr style='border-color: rgba(255,255,255,0.1); margin-top: 5px;'>", unsafe_allow_html=True)
 
 # ==========================================
-# 🖥️ ĐIỀU CHUYỂN CÁC MÀN HÌNH (ROUTING)
+# 🖥️ NỘI DUNG CHÍNH (MAIN CONTENT ROUTING)
 # ==========================================
 
-# --- MÀN HÌNH 1: TRANG CHỦ (LANDING PAGE) ---
+# --- TRANG CHỦ (HOME) ---
 if st.session_state.auth_view == "home":
-    st.markdown("<h1 style='font-size: 4rem; text-align: center; margin-top: 20px; font-weight: 900; background: -webkit-linear-gradient(45deg, #f97316, #ec4899); -webkit-background-clip: text; -webkit-text-fill-color: transparent;'>Chuẩn Mực Ẩm Thực Tương Lai</h1>", unsafe_allow_html=True)
-    st.markdown("<p style='text-align: center; color: #94a3b8; font-size: 1.2rem; margin-bottom: 40px;'>Khám phá công thức vô tận và quản lý tủ lạnh của bạn bằng Trí Tuệ Nhân Tạo.</p>", unsafe_allow_html=True)
+    # Lời chào trung tâm
+    greeting_name = st.session_state.username if st.session_state.logged_in else "Bạn"
+    st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 40px 0 20px;'>Xin chào, {greeting_name}! <br>Hôm nay chúng ta nấu gì nhỉ?</h1>", unsafe_allow_html=True)
+
+    # Các thẻ tác vụ nhanh (Quick Actions)
+    col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     
-    col_empty1, col_center, col_empty2 = st.columns([1, 2, 1])
-    with col_center:
-        st.markdown('<div class="glass-card">', unsafe_allow_html=True)
-        st.subheader("💬 Trải nghiệm nhanh Bếp Trưởng AI")
-        if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
-        
-        chat_container = st.container(height=300)
+    # Helper function để tạo thẻ (vì Streamlit không cho bấm vào div)
+    def quick_action_card(col, icon, title, subtitle):
+        with col:
+            st.markdown(f"""
+            <div class="glass-card-btn">
+                <div class="glass-card-icon">{icon}</div>
+                <div class="glass-card-title">{title}</div>
+                <div style="color:#94a3b8; font-size:0.9em;">{subtitle}</div>
+            </div>
+            """, unsafe_allow_html=True)
+
+    quick_action_card(col_q1, "📸", "Phân tích món ăn", "Tải ảnh lên để AI nhận diện")
+    quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì")
+    quick_action_card(col_q3, "🌍", "Cộng đồng ẩm thực", "Khám phá công thức từ mọi người")
+
+    st.write("") # Khoảng trống
+
+    # Khung Chat dùng thử ở dưới cùng
+    chat_container = st.container(height=400)
+    with chat_container:
+        if not st.session_state.preview_chat:
+             st.markdown("<div style='text-align: center; color: gray; margin-top: 150px;'>Nhập câu hỏi bên dưới để bắt đầu trò chuyện nhanh...</div>", unsafe_allow_html=True)
+        for msg in st.session_state.preview_chat:
+            with st.chat_message(msg["role"]): st.markdown(msg["content"])
+            
+    prompt = st.chat_input("Hỏi nhanh Gordon Rox (VD: Gợi ý bữa tối nhanh gọn)...")
+    if prompt:
+        st.session_state.preview_chat.append({"role": "user", "content": prompt})
+        st.rerun()
+
+    if len(st.session_state.preview_chat) > 0 and st.session_state.preview_chat[-1]["role"] == "user":
         with chat_container:
-            if len(st.session_state.preview_chat) == 0:
-                st.caption("Ví dụ: 'Chỉ tôi cách làm bít tết chuẩn nhà hàng 5 sao.'")
-            for msg in st.session_state.preview_chat:
-                with st.chat_message(msg["role"]): st.markdown(msg["content"])
-                
-        prompt = st.chat_input("Hỏi công thức nấu ăn ngay...")
-        if prompt:
-            st.session_state.preview_chat.append({"role": "user", "content": prompt})
-            st.rerun()
+            with st.chat_message("assistant"):
+                with st.spinner("Đang suy nghĩ..."):
+                    model = genai.GenerativeModel('gemini-2.5-flash', system_instruction="Bạn là trợ lý bếp. Trả lời ngắn gọn, hữu ích. Khuyến khích người dùng dùng các tính năng nâng cao ở menu bên trái.")
+                    res = model.generate_content(st.session_state.preview_chat[-1]["content"])
+                    st.markdown(res.text)
+                    st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
 
-        if len(st.session_state.preview_chat) > 0 and st.session_state.preview_chat[-1]["role"] == "user":
-            with chat_container:
-                with st.chat_message("assistant"):
-                    with st.spinner("Đang suy nghĩ..."):
-                        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction="Trả lời chuyên nghiệp, nhắc người dùng Sign Up để lưu công thức.")
-                        res = model.generate_content(st.session_state.preview_chat[-1]["content"])
-                        st.markdown(res.text)
-                        st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        if st.session_state.logged_in:
-            st.success("Bạn đã đăng nhập! Mở thanh Menu bên trái (dấu > góc trên cùng) để vào Bếp nhé!")
-
-# --- MÀN HÌNH 2: ĐĂNG NHẬP (SIGN IN) ---
+# --- TRANG ĐĂNG NHẬP (LOGIN) ---
 elif st.session_state.auth_view == "login":
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         st.markdown("<div class='auth-box'>", unsafe_allow_html=True)
-        st.markdown("<h2>Chào mừng trở lại</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color:gray; margin-bottom: 30px;'>Đăng nhập để vào không gian bếp của bạn</p>", unsafe_allow_html=True)
-        
-        # Nút GitHub Xịn
+        st.markdown("<h2>👋 Chào mừng trở lại</h2>", unsafe_allow_html=True)
         try:
             client_id = st.secrets["GITHUB_CLIENT_ID"]
             auth_url = f"https://github.com/login/oauth/authorize?client_id={client_id}&scope=read:user"
-            st.link_button("Đăng nhập nhanh với GitHub 🐙", url=auth_url, use_container_width=True)
+            st.link_button("🐙 Tiếp tục với GitHub", url=auth_url, use_container_width=True)
         except: pass
-        
         st.markdown("<div style='margin: 15px 0; color: gray; font-size: 0.8em;'>HOẶC</div>", unsafe_allow_html=True)
-        
         with st.form("login_form"):
             user_in = st.text_input("Tài khoản", placeholder="Nhập username...")
-            pass_in = st.text_input("Mật khẩu", type="password", placeholder="••••••••")
+            pass_in = st.text_input("Mật khẩu", type="password")
             st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
             submit = st.form_submit_button("Đăng Nhập")
             st.markdown('</div>', unsafe_allow_html=True)
-            
             if submit:
                 users = load_db(USER_DB)
                 if user_in in users and users[user_in]["password"] == hash_pass(pass_in):
@@ -172,49 +226,49 @@ elif st.session_state.auth_view == "login":
                     st.session_state.user_data = users[user_in]
                     st.session_state.auth_view = "home"
                     st.rerun()
-                else:
-                    st.error("Sai tài khoản hoặc mật khẩu!")
-                    
+                else: st.error("Sai thông tin!")
         st.write("---")
-        if st.button("Chưa có tài khoản? Đăng ký ngay"):
-            st.session_state.auth_view = "signup"
-            st.rerun()
-            
-        if st.button("🏠 Quay lại Trang Chủ"):
-            st.session_state.auth_view = "home"
-            st.rerun()
+        col_reg, col_home = st.columns(2)
+        with col_reg: 
+            st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+            if st.button("Đăng ký mới"): st.session_state.auth_view = "signup"; st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
+        with col_home:
+            st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+            if st.button("← Trang Chủ"): st.session_state.auth_view = "home"; st.rerun()
+            st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
 
-# --- MÀN HÌNH 3: ĐĂNG KÝ (SIGN UP) ---
+# --- TRANG ĐĂNG KÝ (SIGN UP) ---
 elif st.session_state.auth_view == "signup":
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
         st.markdown("<div class='auth-box'>", unsafe_allow_html=True)
-        st.markdown("<h2 style='color:#f97316;'>Tạo Tài Khoản Mới</h2>", unsafe_allow_html=True)
-        st.markdown("<p style='color:gray; margin-bottom: 30px;'>Gia nhập cộng đồng siêu đầu bếp ngay hôm nay</p>", unsafe_allow_html=True)
-        
+        st.markdown("<h2 style='color:#f97316;'>🚀 Tạo tài khoản mới</h2>", unsafe_allow_html=True)
         with st.form("signup_form"):
             new_user = st.text_input("Tài khoản mới", placeholder="Chọn username...")
             new_pass = st.text_input("Mật khẩu", type="password", placeholder="Tối thiểu 4 ký tự")
             st.markdown('<div class="btn-primary">', unsafe_allow_html=True)
-            submit = st.form_submit_button("Đăng Ký Tài Khoản")
+            submit = st.form_submit_button("Đăng Ký Ngay")
             st.markdown('</div>', unsafe_allow_html=True)
-            
             if submit:
                 users = load_db(USER_DB)
-                if new_user in users: st.error("Tên này đã có người sử dụng!")
-                elif len(new_pass) < 4: st.error("Mật khẩu phải từ 4 ký tự trở lên!")
+                if new_user in users: st.error("Tên đã tồn tại!")
+                elif len(new_pass) < 4: st.error("Mật khẩu quá ngắn!")
                 else:
                     users[new_user] = {"password": hash_pass(new_pass), "fridge": []}
                     save_db(USER_DB, users)
-                    st.success("Thành công! Hãy chuyển sang Đăng Nhập.")
-                    
+                    st.success("Tạo thành công! Vui lòng đăng nhập.")
+                    st.session_state.auth_view = "login"
+                    st.rerun()
         st.write("---")
-        if st.button("Đã có tài khoản? Đăng nhập"):
-            st.session_state.auth_view = "login"
-            st.rerun()
-            
-        if st.button("🏠 Quay lại Trang Chủ"):
-            st.session_state.auth_view = "home"
-            st.rerun()
+        col_log, col_home = st.columns(2)
+        with col_log:
+             st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+             if st.button("Đã có tài khoản?"): st.session_state.auth_view = "login"; st.rerun()
+             st.markdown('</div>', unsafe_allow_html=True)
+        with col_home:
+             st.markdown('<div class="btn-outline">', unsafe_allow_html=True)
+             if st.button("← Trang Chủ"): st.session_state.auth_view = "home"; st.rerun()
+             st.markdown('</div>', unsafe_allow_html=True)
         st.markdown("</div>", unsafe_allow_html=True)
