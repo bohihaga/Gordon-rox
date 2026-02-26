@@ -35,17 +35,19 @@ st.markdown(f"""
 
     .stApp {{ background-color: {bg_color}; color: {text_color}; }}
     
-    /* 🔥 XÓA SẠCH MANAGE APP VÀ CROP GIAO DIỆN 🔥 */
+    /* 🔥 KHÓA CHẶT MÀU LINK (KHÔNG CHO HIỆN MÀU XANH LÈ) 🔥 */
+    a, a:hover, a:visited, a:active {{ color: {text_color} !important; text-decoration: none !important; }}
+    
+    /* 🔥 XÓA SẠCH MANAGE APP VÀ RAW UI CỦA STREAMLIT 🔥 */
+    .viewerBadge_container, .viewerBadge_link {{ display: none !important; }} /* Triệt tiêu Manage App */
     footer {{ display: none !important; }} 
     [data-testid="stFooter"] {{ display: none !important; }}
     #MainMenu {{ visibility: hidden !important; }}
     [data-testid="stToolbar"] {{ display: none !important; }}
     
-    /* ✅ HIỆN LẠI NÚT MỞ SIDEBAR (Cái nút > ở góc trái) */
-    [data-testid="stHeader"] {{ 
-        background-color: transparent !important; 
-    }}
-
+    /* ✅ SỬA LỖI HIỆN CHỮ Ở NÚT MENU GÓC TRÁI */
+    [data-testid="stHeader"] {{ background-color: transparent !important; }}
+    
     [data-testid="stSidebarNav"] {{ display: none !important; }}
     
     /* Thiết kế Sidebar */
@@ -64,14 +66,17 @@ st.markdown(f"""
         background: {sidebar_bg}; border: 1px solid {border_color}; border-radius: 16px; padding: 25px 15px;
         text-align: center; transition: all 0.2s ease; height: 100%;
         display: flex; flex-direction: column; justify-content: center; align-items: center; cursor: pointer;
-        color: {text_color}; text-decoration: none;
+        color: {text_color} !important;
     }}
     .glass-card-btn:hover {{ border-color: #f97316; transform: translateY(-3px); }}
     .glass-card-icon {{ font-size: 2.2rem; margin-bottom: 15px; }}
-    .glass-card-title {{ font-weight: 600; font-size: 1.1rem; }}
+    .glass-card-title {{ font-weight: 600; font-size: 1.1rem; color: {text_color} !important; }}
     .glass-card-subtitle {{ color:#64748b; font-size:0.85em; margin-top:8px; }}
 
-    /* Khung Chat */
+    /* 🔥 SỬA LỖI MẢNG TRẮNG Ở ĐÁY KHUNG CHAT 🔥 */
+    [data-testid="stBottomBlock"], [data-testid="stBottom"] {{
+        background-color: {bg_color} !important; 
+    }}
     .stChatInput {{ background-color: transparent !important; padding-bottom: 20px; }}
     .stChatInputContainer {{ background-color: {input_bg} !important; border: 1px solid {input_border} !important; border-radius: 16px !important; }}
     .stChatInputContainer:focus-within {{ border-color: #f97316 !important; }}
@@ -104,7 +109,6 @@ st.markdown(f"""
         border-color: #f97316 !important; color: #f97316 !important; background: rgba(249, 115, 22, 0.1);
     }}
     
-    /* Nút Primary (Vào Bếp/Đăng Ký) nổi bật hơn */
     div[data-testid="stForm"] .stButton>button {{
         background: #f97316 !important; color: white !important; border: none !important;
     }}
@@ -172,7 +176,6 @@ if "code" in query_params and "state" in query_params:
 with st.sidebar:
     st.markdown("<div class='sidebar-logo'>Gordon Rox</div>", unsafe_allow_html=True)
     
-    # Nút chuyển đổi giao diện Dark/Light
     st.markdown("<div style='font-size:0.9em; font-weight:600; margin-bottom:5px;'>🌓 Giao diện:</div>", unsafe_allow_html=True)
     st.session_state.theme_mode = st.radio("Chọn màu:", ["Dark", "Light"], label_visibility="collapsed", horizontal=True)
     
@@ -248,7 +251,7 @@ if st.session_state.auth_view == "home":
                     st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
 
 # ============================================================
-# 🔥 GIAO DIỆN ĐĂNG NHẬP (CÓ ĐỔI MÀU)
+# 🔥 GIAO DIỆN ĐĂNG NHẬP
 # ============================================================
 elif st.session_state.auth_view == "login":
     col1, col2, col3 = st.columns([1, 1.6, 1])
@@ -284,7 +287,7 @@ elif st.session_state.auth_view == "login":
                     st.rerun()
                 else: st.error("Thông tin không chính xác!")
         
-        st.markdown("<hr style='border-color:rgba(150,150,150,0.2); margin: 25px 0;'>", unsafe_allow_html=True)
+        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
         
         c1, c2 = st.columns(2)
         with c1: 
@@ -320,7 +323,7 @@ elif st.session_state.auth_view == "signup":
                     st.session_state.auth_view = "login"
                     st.rerun()
         
-        st.markdown("<hr style='border-color:rgba(150,150,150,0.2); margin: 25px 0;'>", unsafe_allow_html=True)
+        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
         
         c1, c2 = st.columns(2)
         with c1:
