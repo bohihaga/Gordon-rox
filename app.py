@@ -60,7 +60,7 @@ st.markdown("""
         box-shadow: 0 20px 50px rgba(0,0,0,0.3);
     }
 
-    /* 2. TẮT ĐIỆN viền mặc định của Form Streamlit để tránh bị "hộp lồng hộp" */
+    /* 2. TẮT ĐIỆN viền mặc định của Form Streamlit */
     [data-testid="stForm"] {
         border: none !important;
         padding: 0 !important;
@@ -148,7 +148,7 @@ with st.sidebar:
     st.page_link("pages/3_🌍_Dien_Dan.py", label="Mạng xã hội", icon="🌍")
     st.markdown("<div style='flex-grow: 1; min-height: 45vh;'></div>", unsafe_allow_html=True)
     with st.container(border=True):
-        if st.session_state.logged_in:
+        if st.session_state.get("logged_in"):
             st.markdown(f"<div style='font-weight: 600; font-size:1.1em; margin-bottom:10px;'>👤 {st.session_state.username}</div>", unsafe_allow_html=True)
             if st.button("🔴 Đăng Xuất", use_container_width=True):
                 st.session_state.logged_in = False
@@ -174,8 +174,9 @@ if st.session_state.auth_view == "home":
 # 🖥️ NỘI DUNG CHÍNH (TRANG CHỦ)
 # ==========================================
 if st.session_state.auth_view == "home":
-    greeting_name = st.session_state.username if st.session_state.logged_in else "Bạn"
+    greeting_name = st.session_state.username if st.session_state.get("logged_in") else "Bạn"
     st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 10px 0 40px; font-weight: 800;'>Xin chào, <span style='color:#f97316;'>{greeting_name}</span>!<br>Hôm nay chúng ta nấu gì nhỉ?</h1>", unsafe_allow_html=True)
+    
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     def quick_action_card(col, icon, title, subtitle, target_url):
         with col:
@@ -184,10 +185,16 @@ if st.session_state.auth_view == "home":
     quick_action_card(col_q2, "❄️", "Kiểm tra tủ lạnh", "Xem bạn đang còn nguyên liệu gì", "Tu_Lanh")
     quick_action_card(col_q3, "🌍", "Cộng đồng ẩm thực", "Khám phá công thức từ mọi người", "Dien_Dan")
     st.write("<br>", unsafe_allow_html=True)
+    
     chat_container = st.container(height=350)
     with chat_container:
-        if not st.session_state.preview_chat: st.markdown("<div style='text-align: center; color: #64748b; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
-        for msg in st.session_state.preview_chat: with st.chat_message(msg["role"]): st.markdown(msg["content"])
+        if not st.session_state.preview_chat: 
+            st.markdown("<div style='text-align: center; color: #64748b; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
+        # ĐÃ SỬA LỖI THỤT LỀ Ở ĐÂY 👇
+        for msg in st.session_state.preview_chat: 
+            with st.chat_message(msg["role"]): 
+                st.markdown(msg["content"])
+                
     prompt = st.chat_input("Hỏi nhanh Gordon Rox (VD: Gợi ý bữa tối)...")
     if prompt:
         st.session_state.preview_chat.append({"role": "user", "content": prompt})
@@ -202,17 +209,15 @@ if st.session_state.auth_view == "home":
                     st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
 
 # ============================================================
-# 🔥 GIAO DIỆN ĐĂNG NHẬP MỚI - SIÊU SẠCH SẼ 🔥
+# 🔥 GIAO DIỆN ĐĂNG NHẬP MỚI
 # ============================================================
 elif st.session_state.auth_view == "login":
     col1, col2, col3 = st.columns([1, 1.2, 1])
     with col2:
-        # BẮT ĐẦU THẺ CARD THỐNG NHẤT
         st.markdown("""<div class='unified-auth-card'>
             <h2 style='text-align:center; margin-bottom:30px; font-weight:800;'>👋 Đăng Nhập Hệ Thống</h2>
         """, unsafe_allow_html=True)
         
-        # NÚT SSO
         col_gh, col_dc, col_fb = st.columns(3)
         with col_gh:
             try: st.link_button("🐙 GitHub", url=f"https://github.com/login/oauth/authorize?client_id={st.secrets['GITHUB_CLIENT_ID']}&scope=read:user&state=github", use_container_width=True)
@@ -221,4 +226,67 @@ elif st.session_state.auth_view == "login":
             try: st.link_button("🎮 Discord", url=f"https://discord.com/api/oauth2/authorize?client_id={st.secrets['DISCORD_CLIENT_ID']}&redirect_uri=https://gordon-rox.streamlit.app/&response_type=code&scope=identify&state=discord", use_container_width=True)
             except: pass
         with col_fb:
-            try: st.link_button("📘 Facebook", url=f"
+            try: st.link_button("📘 Facebook", url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id={st.secrets['FACEBOOK_CLIENT_ID']}&redirect_uri=https://gordon-rox.streamlit.app/&state=facebook&scope=public_profile", use_container_width=True)
+            except: pass
+
+        st.markdown("<div style='margin: 25px 0; color: #64748b; font-size: 0.85em; text-align:center; letter-spacing: 1px;'>— HOẶC TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
+        
+        with st.form("login_form"):
+            user_in = st.text_input("Tài khoản", placeholder="Username")
+            pass_in = st.text_input("Mật khẩu", type="password", placeholder="••••••")
+            st.write("") 
+            if st.form_submit_button("🚀 Vào Bếp Ngay", use_container_width=True):
+                users = load_db(USER_DB)
+                if user_in in users and users[user_in]["password"] == hash_pass(pass_in):
+                    st.session_state.logged_in = True
+                    st.session_state.username = user_in
+                    st.session_state.user_data = users[user_in]
+                    st.session_state.auth_view = "home"
+                    st.rerun()
+                else: st.error("Thông tin không chính xác!")
+        
+        st.markdown("<hr style='border-color:rgba(255,255,255,0.1); margin: 25px 0;'>", unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        with c1: 
+            if st.button("✨ Tạo tài khoản mới", use_container_width=True): st.session_state.auth_view = "signup"; st.rerun()
+        with c2:
+            if st.button("← Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
+            
+        st.markdown("</div>", unsafe_allow_html=True)
+
+# ============================================================
+# 🔥 GIAO DIỆN ĐĂNG KÝ MỚI
+# ============================================================
+elif st.session_state.auth_view == "signup":
+    col1, col2, col3 = st.columns([1, 1.2, 1])
+    with col2:
+        st.markdown("""<div class='unified-auth-card'>
+            <h2 style='text-align:center; margin-bottom:30px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2>
+            <p style='text-align:center; color:#94a3b8; margin-bottom:30px;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>
+        """, unsafe_allow_html=True)
+        
+        with st.form("signup_form"):
+            new_user = st.text_input("Tài khoản mong muốn", placeholder="Ví dụ: chef_alex")
+            new_pass = st.text_input("Mật khẩu", type="password", placeholder="Tối thiểu 4 ký tự")
+            st.write("")
+            if st.form_submit_button("✨ Đăng Ký Ngay", use_container_width=True):
+                users = load_db(USER_DB)
+                if new_user in users: st.error("Tên này đã có người dùng!")
+                elif len(new_pass) < 4: st.error("Mật khẩu hơi ngắn, thêm chút nữa đi!")
+                else:
+                    users[new_user] = {"password": hash_pass(new_pass), "fridge": []}
+                    save_db(USER_DB, users)
+                    st.success("Tuyệt vời! Đang chuyển sang đăng nhập...")
+                    st.session_state.auth_view = "login"
+                    st.rerun()
+        
+        st.markdown("<hr style='border-color:rgba(255,255,255,0.1); margin: 25px 0;'>", unsafe_allow_html=True)
+        
+        c1, c2 = st.columns(2)
+        with c1:
+             if st.button("← Đã có tài khoản", use_container_width=True): st.session_state.auth_view = "login"; st.rerun()
+        with c2:
+             if st.button("🏠 Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
+
+        st.markdown("</div>", unsafe_allow_html=True)
