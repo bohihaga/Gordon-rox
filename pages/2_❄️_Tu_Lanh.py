@@ -57,7 +57,10 @@ with st.expander("👁️ QUÉT TỦ LẠNH BẰNG AI", expanded=True):
     scan_img = st.file_uploader("Tải ảnh bên trong tủ lạnh lên", type=["jpg", "jpeg", "png"])
     if scan_img:
         img_fridge = Image.open(scan_img)
-        st.image(img_fridge, height=250)
+        
+        # ĐÃ SỬA LỖI Ở ĐÂY: Dùng width thay cho height
+        st.image(img_fridge, width=400) 
+        
         if st.button("✨ Quét tự động", type="primary"):
             with st.spinner("AI đang đếm nguyên liệu..."):
                 model = genai.GenerativeModel('gemini-2.5-flash')
