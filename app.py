@@ -2,108 +2,16 @@ import streamlit as st
 import google.generativeai as genai
 import requests
 from utils import init_system, hash_pass, load_db, save_db, USER_DB
+from ui import apply_theme, render_sidebar # GỌI GIAO DIỆN VÀO
 
-# 1. Cấu hình trang (Bắt buộc để đầu tiên)
 st.set_page_config(page_title="Gordon Rox | AI Culinary", page_icon="🧑‍🍳", layout="wide", initial_sidebar_state="expanded")
 init_system()
 
-# Khởi tạo các biến session
 if "auth_view" not in st.session_state: st.session_state.auth_view = "home"
 if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
-if "theme_mode" not in st.session_state: st.session_state.theme_mode = "Dark"
 
-# ==========================================
-# 🎨 HỆ THỐNG GIAO DIỆN CHUẨN MỰC
-# ==========================================
-if st.session_state.theme_mode == "Light":
-    bg_color, text_color, card_bg, sidebar_bg, border_color = "#ffffff", "#1e293b", "#f8fafc", "#f1f5f9", "#e2e8f0"
-    input_bg, input_border = "#ffffff", "#cbd5e1"
-    btn_bg = "#f1f5f9"
-else:
-    bg_color, text_color, card_bg, sidebar_bg, border_color = "#0f1115", "#f8fafc", "#1e2026", "#16181d", "#272a30"
-    input_bg, input_border = "#16181d", "#333842"
-    btn_bg = "#1e2026" 
-
-st.markdown(f"""
-    <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Playfair+Display:ital,wght@1,600&display=swap');
-    
-    body, p, h1, h2, h3, h4, h5, h6, div, input, textarea {{ font-family: 'Inter', sans-serif !important; }}
-
-    /* Ép màu nền và màu chữ TỔNG THỂ */
-    .stApp {{ background-color: {bg_color} !important; }}
-    div, p, span, a, label, h1, h2, h3, h4, h5, h6, li {{ color: {text_color} !important; }}
-    a {{ text-decoration: none !important; }}
-    
-    /* 🔥 CỨU HỘ NÚT MỞ MENU (BỊ TÀNG HÌNH GÓC TRÁI TRÊN) 🔥 */
-    [data-testid="collapsedControl"] {{
-        display: flex !important;
-        color: {text_color} !important;
-        background-color: {sidebar_bg} !important;
-        border-radius: 8px !important;
-        border: 1px solid {border_color} !important;
-        z-index: 999999 !important;
-    }}
-    [data-testid="collapsedControl"] svg {{
-        fill: #f97316 !important; /* Ép nút mở menu thành màu CAM cho dễ thấy */
-    }}
-
-    /* Trị lỗi ô Text Input */
-    [data-baseweb="input"], [data-baseweb="input"] > div {{
-        background-color: {input_bg} !important;
-        border-color: {input_border} !important;
-    }}
-    input[type="text"], input[type="password"] {{
-        color: {text_color} !important;
-        background-color: {input_bg} !important;
-        -webkit-text-fill-color: {text_color} !important;
-    }}
-
-    /* Trị lỗi nút SSO */
-    a[data-testid="stLinkButton"], a[data-testid="stLinkButton"] button, [data-testid="stButton"] button {{
-        background-color: {btn_bg} !important; 
-        color: {text_color} !important;
-        border: 1px solid {border_color} !important;
-        border-radius: 10px !important; 
-        font-weight: 600 !important;
-        transition: all 0.2s !important; 
-    }}
-    a[data-testid="stLinkButton"]:hover, a[data-testid="stLinkButton"] button:hover, [data-testid="stButton"] button:hover {{ 
-        border-color: #f97316 !important; 
-        color: #f97316 !important; 
-    }}
-
-    /* Nút Vào Bếp Ngay màu cam */
-    [data-testid="stFormSubmitButton"] button {{ 
-        background-color: #f97316 !important; color: white !important; border: none !important; border-radius: 10px !important; font-weight: 600 !important;
-    }}
-    [data-testid="stFormSubmitButton"] button:hover {{ 
-        background-color: #ea580c !important; box-shadow: 0 5px 15px rgba(249, 115, 22, 0.3) !important; color: white !important;
-    }}
-
-    /* Xử lý Chat Input và mảng đáy */
-    [data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlock"] {{ background-color: {bg_color} !important; }}
-    .stChatInputContainer {{ background-color: {input_bg} !important; border: 1px solid {input_border} !important; border-radius: 16px !important; }}
-    .stChatInputContainer:focus-within {{ border-color: #f97316 !important; }}
-    [data-testid="stVerticalBlockBorderWrapper"] {{ background-color: {card_bg} !important; border-radius: 16px !important; border: 1px solid {border_color} !important; padding: 10px; }}
-
-    /* 🔥 TẨY SẠCH MANAGE APP (TRIỆT ĐỂ 100%) 🔥 */
-    footer, [data-testid="stFooter"], .viewerBadge_container, .viewerBadge_link, [class^="viewerBadge"] {{ 
-        display: none !important; opacity: 0 !important; visibility: hidden !important;
-    }}
-    #MainMenu, [data-testid="stToolbar"] {{ display: none !important; }}
-    [data-testid="stHeader"] {{ background-color: transparent !important; }}
-    
-    /* Thiết kế Sidebar */
-    [data-testid="stSidebarNav"] {{ display: none !important; }}
-    [data-testid="stSidebar"] {{ background-color: {sidebar_bg} !important; border-right: 1px solid {border_color} !important; }}
-    .sidebar-logo {{ font-family: 'Playfair Display', serif !important; font-size: 2.2rem; color: {text_color} !important; margin-bottom: 25px; padding-left: 10px; font-style: italic; }}
-    
-    /* Form Đăng Nhập Kính Mờ */
-    .unified-auth-card {{ background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px; box-shadow: 0 20px 50px rgba(0,0,0,0.2); }}
-    [data-testid="stForm"] {{ border: none !important; padding: 0 !important; background: transparent !important; }}
-    </style>
-""", unsafe_allow_html=True)
+apply_theme()    # Bật CSS màu sắc
+render_sidebar() # Hiện Thanh Menu bên trái
 
 # ==========================================
 # 🚀 XỬ LÝ ĐĂNG NHẬP ĐA NỀN TẢNG (SSO)
@@ -127,7 +35,7 @@ if "code" in query_params and "state" in query_params:
     elif state == "discord":
         try:
             token_url = "https://discord.com/api/oauth2/token"
-            data = {"client_id": st.secrets["DISCORD_CLIENT_ID"], "client_secret": st.secrets["DISCORD_CLIENT_SECRET"], "grant_type": "authorization_code", "code": code, "redirect_uri": "https://gordon-rox.streamlit.app/"}
+            data = {"client_id": st.secrets["DISCORD_CLIENT_ID"], "client_secret": st.secrets["DISCORD_CLIENT_SECRET"], "grant_type": "authorization_code", "code": code, "redirect_uri": "https://gordonrox.streamlit.app/"}
             headers = {"Content-Type": "application/x-www-form-urlencoded"}
             res = requests.post(token_url, data=data, headers=headers)
             if res.status_code == 200 and res.json().get("access_token"):
@@ -138,7 +46,7 @@ if "code" in query_params and "state" in query_params:
     elif state == "facebook":
         try:
             token_url = "https://graph.facebook.com/v19.0/oauth/access_token"
-            params = {"client_id": st.secrets["FACEBOOK_CLIENT_ID"], "redirect_uri": "https://gordon-rox.streamlit.app/", "client_secret": st.secrets["FACEBOOK_CLIENT_SECRET"], "code": code}
+            params = {"client_id": st.secrets["FACEBOOK_CLIENT_ID"], "redirect_uri": "https://gordonrox.streamlit.app/", "client_secret": st.secrets["FACEBOOK_CLIENT_SECRET"], "code": code}
             res = requests.get(token_url, params=params)
             if res.status_code == 200 and res.json().get("access_token"):
                 access_token = res.json().get("access_token")
@@ -158,37 +66,6 @@ if "code" in query_params and "state" in query_params:
         st.rerun()
 
 # ==========================================
-# 📱 THANH BÊN (SIDEBAR) 
-# ==========================================
-with st.sidebar:
-    st.markdown("<div class='sidebar-logo'>Gordon Rox</div>", unsafe_allow_html=True)
-    
-    st.markdown("<div style='font-weight:600; margin-bottom:5px;'>🌓 Giao diện:</div>", unsafe_allow_html=True)
-    st.session_state.theme_mode = st.radio("Chọn màu:", ["Dark", "Light"], label_visibility="collapsed", horizontal=True)
-    
-    st.divider()
-    
-    st.page_link("app.py", label="Trang chủ", icon="🏠")
-    st.page_link("pages/1_🍳_Dau_Bep_AI.py", label="Phân tích món ăn", icon="🍳")
-    st.page_link("pages/2_❄️_Tu_Lanh.py", label="Quản lý Tủ lạnh", icon="❄️")
-    st.page_link("pages/3_🌍_Dien_Dan.py", label="Mạng xã hội", icon="🌍")
-    
-    st.markdown("<div style='flex-grow: 1; min-height: 35vh;'></div>", unsafe_allow_html=True)
-    
-    with st.container(border=True):
-        if st.session_state.get("logged_in"):
-            st.markdown(f"<div style='font-weight: 600; font-size:1.1em; margin-bottom:10px;'>👤 {st.session_state.username}</div>", unsafe_allow_html=True)
-            if st.button("🔴 Đăng Xuất", use_container_width=True):
-                st.session_state.logged_in = False
-                st.session_state.auth_view = "home"
-                st.rerun()
-        else:
-            st.markdown("<div style='font-size: 0.9em; text-align: center; margin-bottom:10px;'>Bạn chưa đăng nhập</div>", unsafe_allow_html=True)
-            if st.button("🔑 Sign In / Up", type="primary", use_container_width=True):
-                st.session_state.auth_view = "login"
-                st.rerun()
-
-# ==========================================
 # 🔝 GÓC TRÊN CÙNG BÊN PHẢI (NEW CHAT)
 # ==========================================
 if st.session_state.auth_view == "home":
@@ -202,7 +79,12 @@ if st.session_state.auth_view == "home":
 # 🖥️ NỘI DUNG CHÍNH (TRANG CHỦ)
 # ==========================================
 if st.session_state.auth_view == "home":
-    # Làm đẹp 3 nút tính năng chính
+    # CSS ép riêng cho 3 nút ở trang chủ
+    sidebar_bg = "#16181d" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#f8fafc"
+    card_bg = "#1e2026" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#f8fafc"
+    border_color = "#272a30" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#e2e8f0"
+    text_color = "#f8fafc" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#1e293b"
+    
     st.markdown(f"""
         <style>
         div[data-testid="column"] .stButton > button {{
@@ -217,7 +99,7 @@ if st.session_state.auth_view == "home":
 
     greeting_name = st.session_state.username if st.session_state.get("logged_in") else "Bạn"
     st.markdown(f"<h1 style='text-align: center; font-size: 3rem; margin: 10px 0 10px; font-weight: 800;'>Xin chào, <span style='color:#f97316;'>{greeting_name}</span>!</h1>", unsafe_allow_html=True)
-    st.markdown(f"<h3 style='text-align: center; font-weight: 400; margin-bottom: 40px;'>Hôm nay chúng ta nấu gì nhỉ?</h3>", unsafe_allow_html=True)
+    st.markdown(f"<h3 style='text-align: center; font-weight: 400; margin-bottom: 40px; color:#64748b;'>Hôm nay chúng ta nấu gì nhỉ?</h3>", unsafe_allow_html=True)
     
     col_q1, col_q2, col_q3 = st.columns(3, gap="medium")
     
@@ -235,9 +117,11 @@ if st.session_state.auth_view == "home":
         
     st.write("<br>", unsafe_allow_html=True)
     
+    # CHATBOT AI GEMINI
     chat_container = st.container(height=350)
     with chat_container:
-        if not st.session_state.preview_chat: st.markdown("<div style='text-align: center; margin-top: 130px; font-weight: 400;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
+        if not st.session_state.preview_chat: 
+            st.markdown("<div style='text-align: center; margin-top: 130px; font-weight: 400; color:#64748b;'>Nhập nguyên liệu bạn đang có vào đây...</div>", unsafe_allow_html=True)
         for msg in st.session_state.preview_chat: 
             with st.chat_message(msg["role"]): st.markdown(msg["content"])
                 
@@ -249,33 +133,34 @@ if st.session_state.auth_view == "home":
         with chat_container:
             with st.chat_message("assistant"):
                 with st.spinner("Đang suy nghĩ..."):
-                    model = genai.GenerativeModel('gemini-2.5-flash', system_instruction="Trả lời ngắn gọn, ngầu như đầu bếp. Kêu gọi dùng các mục ở thanh Menu bên trái.")
-                    res = model.generate_content(st.session_state.preview_chat[-1]["content"])
-                    st.markdown(res.text)
-                    st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
+                    try:
+                        model = genai.GenerativeModel('gemini-2.5-flash', system_instruction="Trả lời ngắn gọn, ngầu như đầu bếp.")
+                        res = model.generate_content(st.session_state.preview_chat[-1]["content"])
+                        st.markdown(res.text)
+                        st.session_state.preview_chat.append({"role": "assistant", "content": res.text})
+                    except Exception as e:
+                        st.error("Hệ thống AI đang bảo trì hoặc chưa nhập API Key!")
 
 # ============================================================
-# 🔥 GIAO DIỆN ĐĂNG NHẬP
-# ============================================================
+# 🔥 GIAO DIỆN ĐĂNG NHẬP 
+# ==========================================
 elif st.session_state.auth_view == "login":
     col1, col2, col3 = st.columns([1, 1.6, 1])
     with col2:
-        st.markdown("""<div class='unified-auth-card'>
-            <h2 style='text-align:center; margin-bottom:30px; font-weight:800; font-size: 1.9rem; white-space: nowrap;'>👋 Đăng Nhập Hệ Thống</h2>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class='unified-auth-card'><h2 style='text-align:center; margin-bottom:30px; font-weight:800;'>👋 Đăng Nhập Hệ Thống</h2>""", unsafe_allow_html=True)
         
         col_gh, col_dc, col_fb = st.columns(3)
         with col_gh:
             try: st.link_button("🐙 GitHub", url=f"https://github.com/login/oauth/authorize?client_id={st.secrets['GITHUB_CLIENT_ID']}&scope=read:user&state=github", use_container_width=True)
             except: st.button("🐙 GitHub", disabled=True, use_container_width=True)
         with col_dc:
-            try: st.link_button("🎮 Discord", url=f"https://discord.com/api/oauth2/authorize?client_id={st.secrets['DISCORD_CLIENT_ID']}&redirect_uri=https://gordon-rox.streamlit.app/&response_type=code&scope=identify&state=discord", use_container_width=True)
+            try: st.link_button("🎮 Discord", url=f"https://discord.com/api/oauth2/authorize?client_id={st.secrets['DISCORD_CLIENT_ID']}&redirect_uri=https://gordonrox.streamlit.app/&response_type=code&scope=identify&state=discord", use_container_width=True)
             except: st.button("🎮 Discord", disabled=True, use_container_width=True)
         with col_fb:
-            try: st.link_button("📘 Facebook", url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id={st.secrets['FACEBOOK_CLIENT_ID']}&redirect_uri=https://gordon-rox.streamlit.app/&state=facebook&scope=public_profile", use_container_width=True)
+            try: st.link_button("📘 Facebook", url=f"https://www.facebook.com/v19.0/dialog/oauth?client_id={st.secrets['FACEBOOK_CLIENT_ID']}&redirect_uri=https://gordonrox.streamlit.app/&state=facebook&scope=public_profile", use_container_width=True)
             except: st.button("📘 Facebook", disabled=True, use_container_width=True)
 
-        st.markdown("<div style='margin: 25px 0; font-size: 0.85em; text-align:center; letter-spacing: 1px;'>— HOẶC TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
+        st.markdown("<div style='margin: 25px 0; font-size: 0.85em; text-align:center; color:#64748b;'>— HOẶC TÀI KHOẢN GORDON ROX —</div>", unsafe_allow_html=True)
         
         with st.form("login_form"):
             user_in = st.text_input("Tài khoản", placeholder="Username")
@@ -291,14 +176,12 @@ elif st.session_state.auth_view == "login":
                     st.rerun()
                 else: st.error("Thông tin không chính xác!")
         
-        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
-        
+        st.markdown(f"<hr style='border-color:rgba(150,150,150,0.2); margin: 25px 0;'>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1: 
             if st.button("✨ Tạo tài khoản mới", use_container_width=True): st.session_state.auth_view = "signup"; st.rerun()
         with c2:
             if st.button("← Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
-            
         st.markdown("</div>", unsafe_allow_html=True)
 
 # ============================================================
@@ -307,10 +190,7 @@ elif st.session_state.auth_view == "login":
 elif st.session_state.auth_view == "signup":
     col1, col2, col3 = st.columns([1, 1.6, 1])
     with col2:
-        st.markdown("""<div class='unified-auth-card'>
-            <h2 style='text-align:center; margin-bottom:10px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2>
-            <p style='text-align:center; margin-bottom:30px;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>
-        """, unsafe_allow_html=True)
+        st.markdown("""<div class='unified-auth-card'><h2 style='text-align:center; margin-bottom:10px; font-weight:800; color:#f97316;'>🚀 Tạo Tài Khoản Mới</h2><p style='text-align:center; margin-bottom:30px; color:#64748b;'>Gia nhập cộng đồng đầu bếp AI ngay hôm nay.</p>""", unsafe_allow_html=True)
         
         with st.form("signup_form"):
             new_user = st.text_input("Tài khoản mong muốn", placeholder="Ví dụ: chef_alex")
@@ -327,12 +207,10 @@ elif st.session_state.auth_view == "signup":
                     st.session_state.auth_view = "login"
                     st.rerun()
         
-        st.markdown(f"<hr style='border-color:{border_color}; margin: 25px 0;'>", unsafe_allow_html=True)
-        
+        st.markdown(f"<hr style='border-color:rgba(150,150,150,0.2); margin: 25px 0;'>", unsafe_allow_html=True)
         c1, c2 = st.columns(2)
         with c1:
              if st.button("← Đã có tài khoản", use_container_width=True): st.session_state.auth_view = "login"; st.rerun()
         with c2:
              if st.button("🏠 Về Trang chủ", use_container_width=True): st.session_state.auth_view = "home"; st.rerun()
-
         st.markdown("</div>", unsafe_allow_html=True)
