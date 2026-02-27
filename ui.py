@@ -1,7 +1,6 @@
 import streamlit as st
 
 def apply_theme():
-    # Khởi tạo mặc định nếu chưa có
     if "theme_mode" not in st.session_state: 
         st.session_state.theme_mode = "Dark"
         
@@ -38,11 +37,20 @@ def apply_theme():
         [data-testid="stFormSubmitButton"] button {{ background-color: #f97316 !important; color: white !important; border: none !important; border-radius: 10px !important; }}
         [data-testid="stFormSubmitButton"] button:hover {{ background-color: #ea580c !important; color: white !important; }}
 
-        [data-testid="stBottom"], [data-testid="stBottomBlock"] {{ background-color: {bg_color} !important; }}
-        .stChatInputContainer {{ background-color: {input_bg} !important; border: 1px solid {input_border} !important; border-radius: 16px !important; }}
+        /* 🔥 TRIỆT TIÊU TOÀN BỘ MẢNG TRẮNG Ở ĐÁY VÀ KHUNG CHAT 🔥 */
+        [data-testid="stBottom"], [data-testid="stBottom"] > div, .stBottomBlock, div[class*="stBottom"] {{ 
+            background-color: transparent !important; 
+            background: transparent !important;
+        }}
+        .stChatInputContainer {{ 
+            background-color: {input_bg} !important; 
+            border: 1px solid {input_border} !important; 
+            border-radius: 16px !important; 
+        }}
         [data-testid="stVerticalBlockBorderWrapper"] {{ background-color: {card_bg} !important; border-radius: 16px !important; border: 1px solid {border_color} !important; padding: 10px; }}
 
-        footer, [data-testid="stFooter"], .viewerBadge_container, .viewerBadge_link, [class^="viewerBadge"], [data-testid="stAppDeployButton"] {{ display: none !important; }}
+        /* 🔥 HỦY DIỆT MANAGE APP VÀ RÁC STREAMLIT 🔥 */
+        footer, [data-testid="stFooter"], .viewerBadge_container, .viewerBadge_link, [class^="viewerBadge"], [data-testid="stAppDeployButton"] {{ display: none !important; visibility: hidden !important; opacity: 0 !important; }}
         #MainMenu, [data-testid="stToolbar"] {{ display: none !important; }}
         [data-testid="stHeader"] {{ background-color: transparent !important; }}
         [data-testid="stSidebarNav"] {{ display: none !important; }}
@@ -79,9 +87,9 @@ def render_sidebar():
                 if st.button("🔴 Đăng Xuất", use_container_width=True):
                     st.session_state.logged_in = False
                     st.session_state.auth_view = "home"
-                    st.switch_page("app.py") # Ép văng về trang chủ
+                    st.switch_page("app.py")
             else:
                 st.markdown("<div style='font-size: 0.9em; text-align: center; margin-bottom:10px;'>Bạn chưa đăng nhập</div>", unsafe_allow_html=True)
                 if st.button("🔑 Sign In / Up", type="primary", use_container_width=True):
                     st.session_state.auth_view = "login"
-                    st.switch_page("app.py") # Về trang chủ để đăng nhập
+                    st.switch_page("app.py")
