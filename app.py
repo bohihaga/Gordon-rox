@@ -2,7 +2,7 @@ import streamlit as st
 import google.generativeai as genai
 import requests
 from utils import init_system, hash_pass, load_db, save_db, USER_DB
-from ui import apply_theme, render_sidebar # GỌI GIAO DIỆN VÀO
+from ui import apply_theme, render_sidebar # GỌI GIAO DIỆN SÁNG VÀO ĐÂY
 
 st.set_page_config(page_title="Gordon Rox | AI Culinary", page_icon="🧑‍🍳", layout="wide", initial_sidebar_state="expanded")
 init_system()
@@ -10,8 +10,9 @@ init_system()
 if "auth_view" not in st.session_state: st.session_state.auth_view = "home"
 if "preview_chat" not in st.session_state: st.session_state.preview_chat = []
 
-apply_theme()    # Bật CSS màu sắc
-render_sidebar() # Hiện Thanh Menu bên trái
+# BẬT GIAO DIỆN CỐ ĐỊNH
+apply_theme()
+render_sidebar()
 
 # ==========================================
 # 🚀 XỬ LÝ ĐĂNG NHẬP ĐA NỀN TẢNG (SSO)
@@ -79,19 +80,14 @@ if st.session_state.auth_view == "home":
 # 🖥️ NỘI DUNG CHÍNH (TRANG CHỦ)
 # ==========================================
 if st.session_state.auth_view == "home":
-    # CSS ép riêng cho 3 nút ở trang chủ
-    sidebar_bg = "#16181d" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#f8fafc"
-    card_bg = "#1e2026" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#f8fafc"
-    border_color = "#272a30" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#e2e8f0"
-    text_color = "#f8fafc" if st.session_state.get("theme_mode", "Dark") == "Dark" else "#1e293b"
-    
+    # Ép cứng 3 nút trang chủ sang màu Trắng
     st.markdown(f"""
         <style>
         div[data-testid="column"] .stButton > button {{
             height: 90px !important; border-radius: 16px !important; font-size: 1.2rem !important;
-            background-color: {card_bg} !important; border: 1px solid {border_color} !important;
+            background-color: #ffffff !important; border: 1px solid #e2e8f0 !important;
             display: flex !important; align-items: center !important; justify-content: center !important;
-            color: {text_color} !important;
+            color: #1e293b !important; box-shadow: 0 4px 6px rgba(0,0,0,0.02) !important;
         }}
         div[data-testid="column"] .stButton > button:hover {{ border-color: #f97316 !important; transform: translateY(-3px) !important; color: #f97316 !important; }}
         </style>
