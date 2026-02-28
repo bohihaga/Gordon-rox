@@ -19,23 +19,22 @@ def apply_theme():
         [data-testid="collapsedControl"] {{ display: flex !important; background-color: {sidebar_bg} !important; border-radius: 8px !important; border: 1px solid {border_color} !important; z-index: 999999 !important; }}
         [data-testid="collapsedControl"] svg {{ fill: #f97316 !important; }}
 
-        /* Tối giản ô nhập liệu */
-        [data-baseweb="input"], [data-baseweb="input"] > div {{ background-color: {input_bg} !important; border-color: {input_border} !important; }}
+        /* Tối giản ô nhập liệu text */
+        [data-baseweb="input"], [data-baseweb="input"] > div {{ background-color: {input_bg} !important; border-color: {input_border} !important; border-radius: 8px !important; }}
         input[type="text"], input[type="password"] {{ color: {text_color} !important; background-color: {input_bg} !important; -webkit-text-fill-color: {text_color} !important; }}
 
-        /* 🔥 TRỊ LỖI Ô FILE UPLOADER BỊ ĐEN 🔥 */
+        /* Ô Kéo thả File (File Uploader) - Làm đậm viền nét đứt */
         [data-testid="stFileUploadDropzone"] {{
             background-color: #f8fafc !important;
-            border: 2px dashed #cbd5e1 !important;
+            border: 2px dashed #94a3b8 !important; /* Nét đứt màu xám đậm, rất dễ nhìn */
+            border-radius: 12px !important;
         }}
-        [data-testid="stFileUploadDropzone"] div, [data-testid="stFileUploadDropzone"] span, [data-testid="stMarkdownContainer"] p {{
-            color: #475569 !important;
-        }}
+        [data-testid="stFileUploadDropzone"] div, [data-testid="stFileUploadDropzone"] span, [data-testid="stMarkdownContainer"] p {{ color: #475569 !important; }}
 
-        /* Tối giản nút bấm */
+        /* Nút bấm thường & SSO */
         [data-testid="stLinkButton"] a, [data-testid="stLinkButton"] button, [data-testid="stButton"] button {{
-            background-color: {btn_bg} !important; color: {text_color} !important; border: 1px solid {border_color} !important;
-            border-radius: 12px !important; font-weight: 600 !important; transition: all 0.2s !important; box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important;
+            background-color: {btn_bg} !important; color: {text_color} !important; border: 1px solid #cbd5e1 !important;
+            border-radius: 10px !important; font-weight: 600 !important; transition: all 0.2s !important; box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important;
         }}
         [data-testid="stLinkButton"] a:hover, [data-testid="stLinkButton"] button:hover, [data-testid="stButton"] button:hover {{ border-color: #f97316 !important; color: #f97316 !important; transform: translateY(-1px); }}
 
@@ -43,21 +42,54 @@ def apply_theme():
         [data-testid="stFormSubmitButton"] button {{ background-color: #f97316 !important; color: white !important; border: none !important; border-radius: 10px !important; }}
         [data-testid="stFormSubmitButton"] button:hover {{ background-color: #ea580c !important; color: white !important; transform: translateY(-1px); }}
 
-        /* 🔥 TRỊ LỖI THANH CHAT BỊ ĐEN 🔥 */
+        /* ==========================================
+           🔥 NÂNG CẤP KHU VỰC CHAT CHUYÊN NGHIỆP 🔥
+           ========================================== */
+           
+        /* 1. Mảng trắng ở đáy - Xóa sổ hoàn toàn */
         [data-testid="stBottom"], [data-testid="stBottom"] > div, .stBottomBlock {{ background-color: transparent !important; }}
-        .stChatInputContainer, [data-testid="stChatInput"] {{ background-color: #ffffff !important; border: 1px solid {input_border} !important; border-radius: 16px !important; }}
+        
+        /* 2. Thanh nhập lệnh (Chat Input) - Nổi bật, sang trọng */
+        .stChatInputContainer, [data-testid="stChatInput"] {{ 
+            background-color: #ffffff !important; 
+            border: 1px solid #94a3b8 !important; /* Viền xám đậm thanh lịch */
+            border-radius: 16px !important; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important; /* Bóng đổ 3D nhẹ */
+        }}
+        .stChatInputContainer:focus-within {{ 
+            border-color: #f97316 !important; 
+            box-shadow: 0 4px 15px rgba(249,115,22,0.1) !important; 
+        }}
         .stChatInputContainer textarea, [data-testid="stChatInputTextArea"] {{ color: #1e293b !important; -webkit-text-fill-color: #1e293b !important; }}
         
-        [data-testid="stVerticalBlockBorderWrapper"] {{ background-color: {card_bg} !important; border-radius: 16px !important; border: 1px solid {border_color} !important; padding: 10px; box-shadow: 0 4px 6px rgba(0,0,0,0.02); }}
+        /* 3. Khung bọc to bên ngoài (Container Tủ lạnh, Chat) - Sắc nét hơn */
+        [data-testid="stVerticalBlockBorderWrapper"] {{ 
+            background-color: {card_bg} !important; 
+            border-radius: 16px !important; 
+            border: 1px solid #cbd5e1 !important; /* Thay màu siêu nhạt thành Xám khói để tạo giới hạn rõ ràng */
+            padding: 15px !important; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important; 
+        }}
 
-        /* Xóa sạch Manage App */
+        /* 4. Bong bóng tin nhắn (Chat Message) - Style giống ChatGPT */
+        [data-testid="stChatMessage"] {{
+            background-color: #f8fafc !important; /* Nền xám xanh cực nhạt */
+            border: 1px solid #e2e8f0 !important;
+            border-radius: 12px !important;
+            padding: 12px 18px !important;
+            margin-bottom: 12px !important;
+        }}
+
+        /* Xóa sạch Manage App và Header rác */
         footer, [data-testid="stFooter"], .viewerBadge_container, .viewerBadge_link, [class^="viewerBadge"], [data-testid="stAppDeployButton"] {{ display: none !important; visibility: hidden !important; opacity: 0 !important; }}
         #MainMenu, [data-testid="stToolbar"], [data-testid="stHeader"] {{ display: none !important; }}
         [data-testid="stSidebarNav"] {{ display: none !important; }}
         
-        /* Sidebar */
+        /* Sidebar thiết kế Sáng */
         [data-testid="stSidebar"] {{ background-color: {sidebar_bg} !important; border-right: 1px solid {border_color} !important; }}
         .sidebar-logo {{ font-family: 'Playfair Display', serif !important; font-size: 2.2rem; color: #f97316 !important; margin-bottom: 25px; padding-left: 10px; font-style: italic; font-weight: 800; }}
+        
+        /* Auth Card - Bo góc, bóng đổ xịn xò */
         .unified-auth-card {{ background: {card_bg}; border: 1px solid {border_color}; border-radius: 24px; padding: 40px 30px; box-shadow: 0 10px 40px rgba(0,0,0,0.05); }}
         [data-testid="stForm"] {{ border: none !important; padding: 0 !important; background: transparent !important; }}
         </style>
@@ -66,11 +98,13 @@ def apply_theme():
 def render_sidebar():
     with st.sidebar:
         st.markdown("<div class='sidebar-logo'>Gordon Rox</div>", unsafe_allow_html=True)
+        
         st.page_link("app.py", label="Trang chủ", icon="🏠")
         st.page_link("pages/1_🍳_Dau_Bep_AI.py", label="Gian Bếp AI", icon="🍳")
         st.page_link("pages/3_🌍_Dien_Dan.py", label="Mạng xã hội", icon="🌍")
         
         st.markdown("<div style='flex-grow: 1; min-height: 40vh;'></div>", unsafe_allow_html=True)
+        
         with st.container(border=True):
             if st.session_state.get("logged_in"):
                 st.markdown(f"<div style='font-weight: 600; font-size:1.1em; margin-bottom:10px;'>👤 {st.session_state.username}</div>", unsafe_allow_html=True)
