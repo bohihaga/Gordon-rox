@@ -14,54 +14,61 @@ def apply_theme():
         [data-testid="collapsedControl"] {{ display: flex !important; background-color: #f8fafc !important; border-radius: 8px !important; border: 1px solid #e2e8f0 !important; z-index: 999999 !important; }}
         [data-testid="collapsedControl"] svg {{ fill: #f97316 !important; }}
 
-        /* Tối giản ô nhập liệu (Text Input) */
+        /* Tối giản ô nhập liệu */
         [data-baseweb="input"], [data-baseweb="input"] > div {{ background-color: #f1f5f9 !important; border-color: #cbd5e1 !important; border-radius: 8px !important; }}
         input[type="text"], input[type="password"] {{ color: #1e293b !important; background-color: #f1f5f9 !important; -webkit-text-fill-color: #1e293b !important; }}
 
-        /* Kéo thả ảnh (File Uploader) */
+        /* File Uploader */
         [data-testid="stFileUploadDropzone"] {{ background-color: #f8fafc !important; border: 2px dashed #94a3b8 !important; border-radius: 12px !important; }}
         [data-testid="stFileUploadDropzone"] div, [data-testid="stFileUploadDropzone"] span, [data-testid="stMarkdownContainer"] p {{ color: #475569 !important; }}
 
-        /* Nút bấm thường & SSO */
+        /* Nút bấm SSO */
         [data-testid="stLinkButton"] a, [data-testid="stLinkButton"] button, [data-testid="stButton"] button {{
             background-color: #ffffff !important; color: #1e293b !important; border: 1px solid #cbd5e1 !important;
             border-radius: 10px !important; font-weight: 600 !important; transition: all 0.2s !important; box-shadow: 0 2px 5px rgba(0,0,0,0.02) !important;
         }}
         [data-testid="stLinkButton"] a:hover, [data-testid="stLinkButton"] button:hover, [data-testid="stButton"] button:hover {{ border-color: #f97316 !important; color: #f97316 !important; transform: translateY(-1px); }}
 
-        /* Nút Submit (Vào Bếp) */
+        /* Nút Submit */
         [data-testid="stFormSubmitButton"] button {{ background-color: #f97316 !important; color: white !important; border: none !important; border-radius: 10px !important; }}
         [data-testid="stFormSubmitButton"] button:hover {{ background-color: #ea580c !important; color: white !important; transform: translateY(-1px); }}
 
         /* ==========================================
            🔥 ĐẶC TRỊ LỖI KHUNG CHAT BỊ ĐEN 🔥
            ========================================== */
+        /* Tẩy sạch màu nền ở đáy */
         [data-testid="stBottom"], [data-testid="stBottom"] > div, .stBottomBlock {{ background-color: transparent !important; background: transparent !important; }}
         
-        /* 1. Xóa màu nền bao quanh khung chat */
-        [data-testid="stChatInput"] {{ background-color: transparent !important; }}
-        
-        /* 2. ÉP CỨNG Khung nhập liệu thành màu trắng, viền xám */
-        [data-testid="stChatInput"] > div {{ 
+        /* 1. ÉP LỚP VỎ NGOÀI CÙNG THÀNH MÀU TRẮNG, CÓ VIỀN */
+        .stChatInputContainer {{
             background-color: #ffffff !important; 
             border: 1px solid #94a3b8 !important; 
             border-radius: 16px !important; 
             box-shadow: 0 4px 15px rgba(0,0,0,0.06) !important;
         }}
-        [data-testid="stChatInput"] > div:focus-within {{ border-color: #f97316 !important; box-shadow: 0 4px 15px rgba(249,115,22,0.15) !important; }}
+        .stChatInputContainer:focus-within {{ border-color: #f97316 !important; box-shadow: 0 4px 15px rgba(249,115,22,0.15) !important; }}
         
-        /* 3. ÉP CỨNG chữ gõ vào thành màu Đen rõ nét */
-        [data-testid="stChatInput"] textarea {{ 
+        /* 2. ÉP TẤT CẢ CÁC LỚP LÕI BÊN TRONG PHẢI TRONG SUỐT (Để lộ nền trắng ở trên ra) */
+        .stChatInputContainer > div,
+        [data-baseweb="textarea"],
+        [data-baseweb="base-input"],
+        .stChatInputContainer textarea {{
+            background-color: transparent !important;
+            background: transparent !important;
+        }}
+        
+        /* 3. ÉP CHỮ HIỂN THỊ MÀU ĐEN RÕ NÉT */
+        .stChatInputContainer textarea, [data-testid="stChatInputTextArea"] {{ 
             color: #1e293b !important; 
             -webkit-text-fill-color: #1e293b !important; 
             caret-color: #f97316 !important; /* Đổi màu con trỏ nhấp nháy thành Cam */
         }}
         /* ========================================== */
 
-        /* Bong bóng Chat style xịn */
+        /* Bong bóng Chat */
         [data-testid="stChatMessage"] {{ background-color: #f8fafc !important; border: 1px solid #e2e8f0 !important; border-radius: 12px !important; padding: 12px 18px !important; margin-bottom: 12px !important; }}
 
-        /* Khung bọc danh sách Tủ Lạnh */
+        /* Khung bọc Container */
         [data-testid="stVerticalBlockBorderWrapper"] {{ background-color: #ffffff !important; border-radius: 16px !important; border: 1px solid #cbd5e1 !important; padding: 15px !important; box-shadow: 0 2px 8px rgba(0,0,0,0.03) !important; }}
 
         /* Xóa Manage App */
@@ -73,7 +80,7 @@ def apply_theme():
         [data-testid="stSidebar"] {{ background-color: #f8fafc !important; border-right: 1px solid #e2e8f0 !important; }}
         .sidebar-logo {{ font-family: 'Playfair Display', serif !important; font-size: 2.2rem; color: #f97316 !important; margin-bottom: 25px; padding-left: 10px; font-style: italic; font-weight: 800; }}
         
-        /* Form Đăng Nhập */
+        /* Auth Card */
         .unified-auth-card {{ background: #ffffff !important; border: 1px solid #e2e8f0 !important; border-radius: 24px !important; padding: 40px 30px !important; box-shadow: 0 10px 40px rgba(0,0,0,0.05) !important; }}
         [data-testid="stForm"] {{ border: none !important; padding: 0 !important; background: transparent !important; }}
         </style>
